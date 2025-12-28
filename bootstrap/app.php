@@ -13,6 +13,9 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         //
     })
-    ->withExceptions(function (Exceptions $exceptions): void {
-        //
+    ->withExceptions(function (Exceptions $exceptions) {
+        $exceptions->render(function (AccessDeniedHttpException $e, Request $request) {
+            // Jika akses ditolak, arahkan ke dashboard filament
+            return redirect('/admin');
+        });
     })->create();

@@ -15,6 +15,7 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Schemas\Components\Section;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Hidden;
 use Filament\Support\Icons\Heroicon;
@@ -26,13 +27,13 @@ class DosenResource extends Resource
 
     protected static ?string $slug = 'dosen';
 
-    protected static ?string $navigationLabel = 'Dosen';
+    protected static ?string $navigationLabel = 'Data Dosen';
 
-    protected static ?string $pluralModelLabel = 'Dosen';
+    protected static ?string $pluralModelLabel = 'Data Dosen';
 
-    protected static ?string $modelLabel = 'Dosen';
+    protected static ?string $modelLabel = 'Data Dosen';
 
-    protected static string | BackedEnum | null $navigationIcon = Heroicon::OutlinedAcademicCap;
+    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedAcademicCap;
 
     protected static ?string $recordTitleAttribute = 'name'; // Gunakan nama kolom yang ada (contoh: 'name')
 
@@ -48,49 +49,31 @@ class DosenResource extends Resource
     /**
      * Form Configuration (Filament v4 Style)
      */
+
     public static function form(Schema $schema): Schema
     {
         return $schema->schema([
             Section::make('Informasi Akun')
                 ->description('Data login dan identitas dosen')
                 ->columns(2)
-                ->schema([
-                    TextInput::make('name')
-                        ->label('Nama Lengkap')
-                        ->required()
-                        ->maxLength(255),
-
-                    TextInput::make('email')
-                        ->label('Alamat Email')
-                        ->email()
-                        ->required()
-                        ->unique(ignoreRecord: true),
-
-                    TextInput::make('password')
-                        ->label('Password')
-                        ->password()
-                        ->required()
-                        ->visibleOn('create'),
-
-                    // Otomatis tersimpan sebagai dosen
-                    Hidden::make('role')
-                        ->default('dosen'),
-                ]),
+                ->schema([TextInput::make('name')->label('Nama Lengkap')->required()->maxLength(255), TextInput::make('email')->label('Alamat Email')->email()->required()->unique(ignoreRecord: true), TextInput::make('password')->label('Password')->password()->required()->visibleOn('create'), Hidden::make('role')->default('dosen')]),
 
             Section::make('Detail Profil')
-                ->relationship('dosenProfile') // Pastikan relasi ini ada di model User
+                ->relationship('dosenProfile')
                 ->columns(2)
                 ->schema([
-                    TextInput::make('nidn')
-                        ->label('NIDN')
+                    TextInput::make('nidn')->numeric()->label('NIDN')->required(),
+                    TextInput::make('jabatan')->label('Jabatan')->required(),
+                    DatePicker::make('tanggal_masuk')->label('Tanggal Masuk')->required(),
+                    Select::make('status_aktif') // ❌ pindah ke sini
+                        ->label('Status')
+                        ->options([
+                            'aktif' => 'Aktif',
+                            'non-aktif' => 'Non-Aktif',
+                        ])
                         ->required(),
-
-                    Select::make('prodi_id')
-                        ->label('Program Studi')
-                        ->relationship('prodi', 'nama')
-                        ->searchable()
-                        ->preload()
-                        ->required(),
+                    Select::make('prodi_id')->label('Program Studi')->relationship('prodi', 'nama')->searchable()->preload()->required(),
+                    Select::make('mataKuliahs')->label('Mata Kuliah')->relationship('mataKuliahs', 'nama')->multiple()->searchable()->preload(),
                 ]),
         ]);
     }
@@ -105,8 +88,19 @@ class DosenResource extends Resource
         return DosensTable::configure($table);
     }
 
+    // Tambahkan method ini di dalam class MataKuliahResource
+public static function canCreate(): bool
+{
+    return auth()->user()->role === 'kaprodi';
+}
+
     public static function getPages(): array
     {
+
+        if (request()->is('*/create') && auth()->user()?->role !== 'kaprodi') {
+        abort(redirect('/admin'));
+    }
+
         return [
             'index' => ListDosens::route('/'),
             'create' => CreateDosen::route('/create'),

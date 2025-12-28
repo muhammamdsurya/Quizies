@@ -20,9 +20,17 @@ class ProdiResource extends Resource
 {
     protected static ?string $model = Prodi::class;
 
+     protected static ?string $slug = 'prodi';
+
+    protected static ?string $navigationLabel = 'Program Studi';
+
+    protected static ?string $pluralModelLabel = 'Program Studi';
+
+    protected static ?string $modelLabel = 'Program Studi';
+
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
 
-    protected static ?string $recordTitleAttribute = 'Prodi';
+    protected static ?string $recordTitleAttribute = 'nama';
 
     public static function form(Schema $schema): Schema
     {
@@ -46,8 +54,17 @@ class ProdiResource extends Resource
         ];
     }
 
+    // Tambahkan method ini di dalam class MataKuliahResource
+public static function canCreate(): bool
+{
+    return auth()->user()->role === 'kaprodi';
+}
+
     public static function getPages(): array
     {
+        if (request()->is('*/create') && auth()->user()?->role !== 'kaprodi') {
+        abort(redirect('/admin'));
+    }
         return [
             'index' => ListProdis::route('/'),
             'create' => CreateProdi::route('/create'),

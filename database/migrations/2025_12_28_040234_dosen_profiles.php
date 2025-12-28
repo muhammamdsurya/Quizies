@@ -16,7 +16,9 @@ return new class extends Migration
     $table->foreignId('user_id')->constrained()->cascadeOnDelete();
     $table->string('nidn')->unique();
     $table->foreignId('prodi_id')->constrained('prodis');
-    $table->date('tanggal_masuk')->nullable();
+    $table->string('jabatan');
+    $table->date('tanggal_masuk');
+    $table->string('status_aktif');
     $table->timestamps();
 });
 

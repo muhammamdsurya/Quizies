@@ -23,16 +23,13 @@ return new class extends Migration
             $table->string('nim')->unique();
             $table->foreignId('prodi_id')->constrained()->cascadeOnDelete();
             $table->unsignedTinyInteger('semester');
-            $table->year('tahun_masuk')->nullable();
             $table->date('tanggal_masuk')->nullable();
 
             // Status
-            $table->boolean('is_active')->default(true);
+            $table->string('status_aktif');
 
             $table->timestamps();
 
-            // Satu user hanya satu profil mahasiswa
-            $table->unique('user_id');
         });
     }
 

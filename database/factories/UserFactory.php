@@ -21,17 +21,19 @@ class UserFactory extends Factory
      *
      * @return array<string, mixed>
      */
-    public function definition(): array
+     public function definition(): array
     {
+        $faker = \Faker\Factory::create('id_ID');
+
         return [
-            'name' => fake()->name(),
-            'email' => fake()->unique()->safeEmail(),
-            'email_verified_at' => now(),
-            'password' => static::$password ??= Hash::make('password'),
-            'remember_token' => Str::random(10),
-            'two_factor_secret' => Str::random(10),
-            'two_factor_recovery_codes' => Str::random(10),
-            'two_factor_confirmed_at' => now(),
+            'name' => $faker->name(),
+            'email' => $faker->unique()->safeEmail(),
+            'password' => Hash::make('password'),
+            'role' => $faker->randomElement([
+                'dosen',
+                'mahasiswa',
+            ]),
+            'remember_token' => $faker->uuid(),
         ];
     }
 

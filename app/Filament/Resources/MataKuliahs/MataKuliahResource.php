@@ -1,0 +1,162 @@
+<?php
+
+namespace App\Filament\Resources\MataKuliahs;
+
+use App\Models\User;
+use App\Models\DosenProfile;
+use App\Models\Prodi;
+use App\Filament\Resources\MataKuliahs\Pages\CreateMataKuliah;
+use App\Filament\Resources\MataKuliahs\Pages\EditMataKuliah;
+use App\Filament\Resources\MataKuliahs\Pages\ListMataKuliahs;
+use App\Filament\Resources\MataKuliahs\Pages\ViewMataKuliah;
+use App\Filament\Resources\MataKuliahs\Schemas\MataKuliahForm;
+use App\Filament\Resources\MataKuliahs\Schemas\MataKuliahInfolist;
+use App\Filament\Resources\MataKuliahs\Tables\MataKuliahsTable;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Hidden;
+use App\Models\MataKuliah;
+use BackedEnum;
+use Filament\Resources\Resource;
+use Filament\Schemas\Schema;
+use Filament\Support\Icons\Heroicon;
+use Filament\Tables\Table;
+use Filament\Schemas\Components\Utilities\Set;
+use Filament\Schemas\Components\Utilities\Get;
+
+class MataKuliahResource extends Resource
+{
+    protected static ?string $model = MataKuliah::class;
+
+    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+
+    protected static ?string $recordTitleAttribute = 'MataKuliah';
+
+    protected static ?string $slug = 'matkul';
+
+    protected static ?string $navigationLabel = 'Mata Kuliah';
+
+    protected static ?string $pluralModelLabel = 'Mata Kuliah';
+
+    protected static ?string $modelLabel = 'Mata Kuliah';
+
+
+    public static function form(Schema $schema): Schema
+{
+    return $schema->schema([
+        TextInput::make('nama')
+            ->label('Nama Mata Kuliah')
+            ->required()
+            ->maxLength(255),
+
+        Select::make('prodi_id')
+            ->label('Program Studi')
+            ->relationship('prodi', 'nama')
+            ->searchable()
+            ->preload()
+            ->required()
+            ->live() // Aktifkan mode live agar perubahan terdeteksi
+            ->afterStateUpdated(fn (Set $set, Get $get) => self::generateKode($set, $get)),
+
+        TextInput::make('kode')
+            ->label('Kode')
+            ->required()
+            ->unique(ignoreRecord: true)
+            // Biarkan user melihat tapi tidak mengedit manual (opsional)
+            ->readonly(),
+
+        TextInput::make('semester')
+            ->label('Semester')
+            ->numeric()
+            ->minValue(1)
+            ->maxValue(8)
+            ->default(2)
+            ->required()
+            ->live(onBlur: true) // Update kode setelah user selesai input angka
+            ->afterStateUpdated(fn (Set $set, Get $get) => self::generateKode($set, $get)),
+
+        TextInput::make('sks')
+            ->label('SKS')
+            ->numeric()
+            ->minValue(1)
+            ->maxValue(6)
+            ->default(3)
+            ->required()
+            ->live(onBlur: true)
+            ->afterStateUpdated(fn (Set $set, Get $get) => self::generateKode($set, $get)),
+
+        Select::make('dosens') // Nama field HARUS sama dengan nama fungsi relasi di model
+    ->label('Dosen Pengajar')
+    ->relationship('dosens', 'id') // 'dosens' adalah nama relasi, 'id' field yg disimpan
+    ->multiple() // Wajib karena ini Many-to-Many
+    ->searchable()
+    ->preload()
+    ->getOptionLabelFromRecordUsing(fn ($record) => $record->user->name) // Menampilkan nama dari relasi user
+    ->required(),
+    ]);
+}
+
+// Fungsi Helper untuk Generate Kode
+public static function generateKode(Set $set, Get $get)
+{
+    $prodiId = $get('prodi_id');
+    $semester = $get('semester');
+    $sks = $get('sks');
+
+    if ($prodiId && $semester && $sks) {
+        // 1. Ambil nama prodi dari DB berdasarkan ID
+        $prodiName = Prodi::find($prodiId)?->nama;
+
+        if ($prodiName) {
+            // 2. Ambil inisial (Sistem Informasi -> SI)
+            $initials = collect(explode(' ', $prodiName))
+                ->map(fn ($word) => strtoupper($word[0]))
+                ->join('');
+
+            // 3. Format Semester (misal 1 jadi 01)
+            $formattedSemester = str_pad($semester, 2, '0', STR_PAD_LEFT);
+
+            // 4. Set nilai ke kolom kode: SI-01-3
+            $set('kode', "{$initials}-{$formattedSemester}-{$sks}");
+        }
+    }
+}
+
+public static function canCreate(): bool
+{
+    // Mengecek apakah role user saat ini ada di dalam daftar ['kaprodi', 'dosen']
+    return in_array(auth()->user()->role, ['kaprodi', 'dosen']);
+}
+    public static function infolist(Schema $schema): Schema
+    {
+        return MataKuliahInfolist::configure($schema);
+    }
+
+    public static function table(Table $table): Table
+    {
+        return MataKuliahsTable::configure($table);
+    }
+
+    public static function getRelations(): array
+    {
+        return [
+                //
+            ];
+    }
+
+    public static function getPages(): array
+    {
+
+        // Jika user mencoba akses /create tapi bukan kaprodi, arahkan ke dashboard
+    if (request()->is('*/create') && auth()->user()?->role !== 'kaprodi') {
+        abort(redirect('/admin'));
+    }
+
+        return [
+            'index' => ListMataKuliahs::route('/'),
+            'create' => CreateMataKuliah::route('/create'),
+            'view' => ViewMataKuliah::route('/{record}'),
+            'edit' => EditMataKuliah::route('/{record}/edit'),
+        ];
+    }
+}

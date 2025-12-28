@@ -3,19 +3,17 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Prodi extends Model
 {
+    use HasFactory;
+
     protected $fillable = ['kode', 'nama'];
 
-    public function dosenProfiles(): HasMany
+    public function mataKuliahs()
     {
-        return $this->hasMany(DosenProfile::class);
-    }
-
-    public function mahasiswaProfiles(): HasMany
-    {
-        return $this->hasMany(MahasiswaProfile::class);
+        return $this->hasMany(MataKuliah::class);
     }
 }
