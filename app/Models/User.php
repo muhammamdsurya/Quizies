@@ -57,14 +57,15 @@ class User extends Authenticatable implements FilamentUser
         return Str::of($this->name)->explode(' ')->take(2)->map(fn($word) => Str::substr($word, 0, 1))->implode('');
     }
 
-    // Tambahkan di dalam class User
-public function scopeDosen(Builder $query)
+   public function dosenProfile()
 {
-    return $query->where('role', 'dosen');
+    return $this->hasOne(DosenProfile::class);
 }
 
-public function scopeMahasiswa(Builder $query)
+public function mahasiswaProfile()
 {
-    return $query->where('role', 'mahasiswa');
+    return $this->hasOne(MahasiswaProfile::class);
 }
+
+
 }

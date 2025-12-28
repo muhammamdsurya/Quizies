@@ -1,22 +1,21 @@
 <?php
 
 namespace App\Filament\Resources\Mahasiswas;
+
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use App\Filament\Resources\Mahasiswas\Pages\CreateMahasiswa;
 use App\Filament\Resources\Mahasiswas\Pages\EditMahasiswa;
 use App\Filament\Resources\Mahasiswas\Pages\ListMahasiswas;
 use App\Filament\Resources\Mahasiswas\Pages\ViewMahasiswa;
-use App\Filament\Resources\Mahasiswas\Schemas\MahasiswaForm;
-use App\Filament\Resources\Mahasiswas\Schemas\MahasiswaInfolist;
 use App\Filament\Resources\Mahasiswas\Tables\MahasiswasTable;
 use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
-use Filament\Forms\Form;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Hidden;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
-use Mahasiswa;
 
 class MahasiswaResource extends Resource
 {
@@ -30,50 +29,56 @@ class MahasiswaResource extends Resource
 
     protected static ?string $modelLabel = 'Mahasiswa';
 
-    protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-academic-cap';
+    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedAcademicCap;
 
-    protected static ?string $recordTitleAttribute = 'Mahasiswa';
+    protected static ?string $recordTitleAttribute = 'name';
 
+    /**
+     * Ambil hanya user role mahasiswa
+     */
     public static function getEloquentQuery(): Builder
     {
-        return parent::getEloquentQuery()->mahasiswa();
+        return parent::getEloquentQuery()
+            ->where('role', 'mahasiswa');
     }
 
+    /**
+     * FORM
+     */
     public static function form(Schema $schema): Schema
     {
-        return $form->schema([
-        // Isian form Anda di sini
-        \Filament\Forms\Components\TextInput::make('name')->required(),
-        \Filament\Forms\Components\TextInput::make('email')->email()->required(),
-        \Filament\Forms\Components\TextInput::make('nim')->required(),
-        \Filament\Forms\Components\Hidden::make('role')->default('mahasiswa'),
-    ]);
+        return $schema->schema([
+            TextInput::make('name')
+                ->label('Nama')
+                ->required(),
+
+            TextInput::make('email')
+                ->email()
+                ->required(),
+
+            Hidden::make('role')
+                ->default('mahasiswa'),
+        ]);
     }
 
-    public static function infolist(Schema $schema): Schema
-    {
-        return MahasiswaInfolist::configure($schema);
-    }
-
+    /**
+     * TABLE
+     */
     public static function table(Table $table): Table
     {
         return MahasiswasTable::configure($table);
     }
 
-    public static function getRelations(): array
-    {
-        return [
-                //
-            ];
-    }
-
+    /**
+     * Pages
+     */
     public static function getPages(): array
     {
         return [
-            'index' => ListMahasiswas::route('/'),
+            'index'  => ListMahasiswas::route('/'),
             'create' => CreateMahasiswa::route('/create'),
-            'view' => ViewMahasiswa::route('/{record}'),
-            'edit' => EditMahasiswa::route('/{record}/edit'),
+            'view'   => ViewMahasiswa::route('/{record}'),
+            'edit'   => EditMahasiswa::route('/{record}/edit'),
         ];
     }
 }
