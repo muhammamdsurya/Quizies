@@ -54,22 +54,14 @@ class ProdiResource extends Resource
         ];
     }
 
-    // Tambahkan method ini di dalam class MataKuliahResource
-public static function canCreate(): bool
-{
-    return auth()->user()->role === 'kaprodi';
-}
-
     public static function getPages(): array
     {
-        if (request()->is('*/create') && auth()->user()?->role !== 'kaprodi') {
-        abort(redirect('/admin'));
-    }
-        return [
+       return [
             'index' => ListProdis::route('/'),
             'create' => CreateProdi::route('/create'),
             'view' => ViewProdi::route('/{record}'),
             'edit' => EditProdi::route('/{record}/edit'),
         ];
     }
+    
 }

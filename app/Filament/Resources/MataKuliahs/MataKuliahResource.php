@@ -16,6 +16,7 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Hidden;
 use App\Models\MataKuliah;
+use Illuminate\Database\Eloquent\Builder;
 use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
@@ -40,6 +41,35 @@ class MataKuliahResource extends Resource
 
     protected static ?string $modelLabel = 'Mata Kuliah';
 
+public static function getEloquentQuery(): Builder
+{
+    $user = auth()->user();
+    $query = parent::getEloquentQuery();
+
+    // 1. Kaprodi / Admin → Bisa melihat semua data
+    if (in_array($user->role, ['kaprodi'])) {
+        return $query;
+    }
+
+    // 2. Dosen → Hanya melihat mata kuliah yang diampunya
+    if ($user->role === 'dosen' && $user->dosenProfile) {
+        return $query->whereHas(
+            'dosens',
+            fn ($q) => $q->where('dosen_profiles.id', $user->dosenProfile->id)
+        );
+    }
+
+    // 3. Mahasiswa → Hanya melihat mata kuliah yang diambil (Dosen pengampu otomatis ikut tampil)
+    if ($user->role === 'mahasiswa' && $user->mahasiswaProfile) {
+        return $query->whereHas(
+            'mahasiswas',
+            fn ($q) => $q->where('mahasiswa_profiles.id', $user->mahasiswaProfile->id)
+        );
+    }
+
+    // 4. Role lain atau jika profil tidak ditemukan → Tampilkan data kosong
+    return $query->whereRaw('1=0');
+}
 
     public static function form(Schema $schema): Schema
 {
@@ -122,11 +152,6 @@ public static function generateKode(Set $set, Get $get)
     }
 }
 
-public static function canCreate(): bool
-{
-    // Mengecek apakah role user saat ini ada di dalam daftar ['kaprodi', 'dosen']
-    return in_array(auth()->user()->role, ['kaprodi', 'dosen']);
-}
     public static function infolist(Schema $schema): Schema
     {
         return MataKuliahInfolist::configure($schema);
@@ -147,16 +172,12 @@ public static function canCreate(): bool
     public static function getPages(): array
     {
 
-        // Jika user mencoba akses /create tapi bukan kaprodi, arahkan ke dashboard
-    if (request()->is('*/create') && auth()->user()?->role !== 'kaprodi') {
-        abort(redirect('/admin'));
-    }
-
-        return [
+       return [
             'index' => ListMataKuliahs::route('/'),
             'create' => CreateMataKuliah::route('/create'),
             'view' => ViewMataKuliah::route('/{record}'),
             'edit' => EditMataKuliah::route('/{record}/edit'),
         ];
+
     }
 }

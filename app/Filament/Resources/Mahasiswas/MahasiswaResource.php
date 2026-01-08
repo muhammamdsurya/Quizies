@@ -36,15 +36,38 @@ class MahasiswaResource extends Resource
 
     protected static ?string $recordTitleAttribute = 'name';
 
+    public static function canViewAny(): bool
+    {
+        $user = auth()->user();
+
+        // Menu ini HILANG jika user adalah mahasiswa
+        // Menu ini MUNCUL jika user adalah kaprodi atau admin
+        return in_array($user->role, ['kaprodi', 'dosen']);
+    }
     /**
      * Ambil hanya user role mahasiswa
      */
+
     public static function getEloquentQuery(): Builder
-    {
-        return parent::getEloquentQuery()
-            ->where('role', 'mahasiswa');
+{
+    $user = auth()->user();
+    $query = parent::getEloquentQuery()->where('role', 'mahasiswa');
+// 1. Jika Role Kaprodi, tampilkan SEMUA mahasiswa (Akses Penuh)
+    if ($user->role === 'kaprodi') {
+        return $query;
     }
 
+    // 2. Jika Role Dosen, saring mahasiswa berdasarkan Mata Kuliah yang diajar
+    if ($user->role === 'dosen') {
+        return $query->whereHas('mahasiswaProfile.mataKuliahs', function (Builder $subQuery) use ($user) {
+            $subQuery->whereHas('dosens', function (Builder $dosenQuery) use ($user) {
+                $dosenQuery->where('user_id', $user->id);
+            });
+        });
+    }
+    // 3. Jika role tidak dikenal, kembalikan query kosong demi keamanan
+    return $query->whereRaw('1=0');
+}
     /**
      * FORM
      */
@@ -84,20 +107,11 @@ class MahasiswaResource extends Resource
         return MahasiswasTable::configure($table);
     }
 
-     // Tambahkan method ini di dalam class MataKuliahResource
-public static function canCreate(): bool
-{
-    return auth()->user()->role === 'kaprodi';
-}
-
     /**
      * Pages
      */
     public static function getPages(): array
     {
-        if (request()->is('*/create') && auth()->user()?->role !== 'kaprodi') {
-        abort(redirect('/admin'));
-    }
         return [
             'index'  => ListMahasiswas::route('/'),
             'create' => CreateMahasiswa::route('/create'),

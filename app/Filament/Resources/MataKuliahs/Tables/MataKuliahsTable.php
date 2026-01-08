@@ -5,6 +5,7 @@ namespace App\Filament\Resources\MataKuliahs\Tables;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
+use Filament\Actions\DeleteAction;
 use Filament\Actions\ViewAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
@@ -47,7 +48,11 @@ class MataKuliahsTable
             ->recordActions([
                 EditAction::make()
         ->visible(fn () => in_array(auth()->user()->role, ['kaprodi', 'dosen'])),
-            ])
+           DeleteAction::make()
+                ->visible(fn () => auth()->user()?->role === 'kaprodi')
+                ->requiresConfirmation(),
+        ])
+
             ->toolbarActions([
                 BulkActionGroup::make([
                     DeleteBulkAction::make(),

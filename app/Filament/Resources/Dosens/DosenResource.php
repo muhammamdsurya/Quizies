@@ -4,6 +4,7 @@ namespace App\Filament\Resources\Dosens;
 
 use BackedEnum;
 use App\Models\User;
+use App\Models\DosenProfile;
 use App\Filament\Resources\Dosens\Pages\CreateDosen;
 use App\Filament\Resources\Dosens\Pages\EditDosen;
 use App\Filament\Resources\Dosens\Pages\ListDosens;
@@ -37,14 +38,26 @@ class DosenResource extends Resource
 
     protected static ?string $recordTitleAttribute = 'name'; // Gunakan nama kolom yang ada (contoh: 'name')
 
-    /**
-     * Mengambil hanya user dengan role dosen
-     */
     public static function getEloquentQuery(): Builder
-    {
-        // Pastikan Anda memiliki scopeDosen di model User atau gunakan where langsung
-        return parent::getEloquentQuery()->where('role', 'dosen');
+{
+    $user = auth()->user();
+    $query = parent::getEloquentQuery()->where('role', 'dosen');
+
+    // 1. Jika Role Kaprodi atau Dosen, tampilkan semua data dosen
+    if (in_array($user->role, ['kaprodi', 'dosen'])) {
+        return $query;
     }
+
+    // 2. Jika Role Mahasiswa, hanya tampilkan dosen yang mengajar mahasiswa tersebut
+    if ($user->role === 'mahasiswa' && $user->mahasiswaProfile) {
+        return $query->whereHas('dosenProfile.mataKuliahs.mahasiswas', function ($q) use ($user) {
+            $q->where('mahasiswa_profiles.id', $user->mahasiswaProfile->id);
+        });
+    }
+
+    // 3. Jika role tidak dikenal, kembalikan query kosong demi keamanan
+    return $query->whereRaw('1=0');
+}
 
     /**
      * Form Configuration (Filament v4 Style)
@@ -88,24 +101,15 @@ class DosenResource extends Resource
         return DosensTable::configure($table);
     }
 
-    // Tambahkan method ini di dalam class MataKuliahResource
-public static function canCreate(): bool
-{
-    return auth()->user()->role === 'kaprodi';
-}
-
     public static function getPages(): array
     {
 
-        if (request()->is('*/create') && auth()->user()?->role !== 'kaprodi') {
-        abort(redirect('/admin'));
-    }
-
-        return [
+         return [
             'index' => ListDosens::route('/'),
             'create' => CreateDosen::route('/create'),
             'view' => ViewDosen::route('/{record}'),
             'edit' => EditDosen::route('/{record}/edit'),
         ];
+
     }
 }
