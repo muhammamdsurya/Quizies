@@ -44,13 +44,13 @@ class KaprodiWidget extends StatsOverviewWidget
 
             // Stat 3: Jumlah Mata Kuliah
             Stat::make('Mata Kuliah', MataKuliah::count())
-                ->description('Total kurikulum aktif')
+                ->description('Total mata kuliah aktif')
                 ->descriptionIcon('heroicon-m-book-open')
                 ->color('warning'),
 
             // Stat 4: Jumlah Program Studi
             Stat::make('Program Studi', Prodi::count())
-                ->description('Total departemen')
+                ->description('Total program studi')
                 ->descriptionIcon('heroicon-m-building-library')
                 ->color('info'),
         ];

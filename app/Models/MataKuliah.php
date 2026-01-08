@@ -26,4 +26,10 @@ class MataKuliah extends Model
     return $this->belongsToMany(MahasiswaProfile::class, 'mahasiswa_mata_kuliah', 'mata_kuliah_id', 'mahasiswa_id');
 }
 
+public function dosenProfiles()
+{
+    // Pastikan nama tabel pivot dan foreign key sama persis dengan yang di DosenProfile
+    return $this->belongsToMany(DosenProfile::class, 'dosen_mata_kuliah', 'mata_kuliah_id', 'dosen_id');
+}
+
 }
