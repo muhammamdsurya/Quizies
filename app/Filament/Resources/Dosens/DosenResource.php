@@ -28,6 +28,8 @@ class DosenResource extends Resource
 
     protected static ?string $slug = 'dosen';
 
+    protected static ?int $navigationSort = 5;
+
     protected static ?string $navigationLabel = 'Data Dosen';
 
     protected static ?string $pluralModelLabel = 'Data Dosen';

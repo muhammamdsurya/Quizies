@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use Laravel\Fortify\Features;
+use App\Livewire\KerjakanUjian;
 use Livewire\Volt\Volt;
 
 Route::get('/', function () {
@@ -11,6 +12,10 @@ Route::get('/', function () {
 Route::view('dashboard', 'dashboard')
     ->middleware(['auth', 'verified'])
     ->name('dashboard');
+
+    Route::get('/ujian/kerjakan/{attempt_id}', KerjakanUjian::class)
+    ->name('ujian.kerjakan')
+    ->middleware(['auth']);
 
 Route::middleware(['auth'])->group(function () {
     Route::redirect('settings', 'settings/profile');

@@ -29,6 +29,9 @@ class MataKuliahResource extends Resource
 {
     protected static ?string $model = MataKuliah::class;
 
+    protected static ?int $navigationSort = 4;
+
+
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
 
     protected static ?string $recordTitleAttribute = 'MataKuliah';

@@ -22,6 +22,8 @@ class ProdiResource extends Resource
 
      protected static ?string $slug = 'prodi';
 
+     protected static ?int $navigationSort = 5;
+
     protected static ?string $navigationLabel = 'Program Studi';
 
     protected static ?string $pluralModelLabel = 'Program Studi';
@@ -63,5 +65,5 @@ class ProdiResource extends Resource
             'edit' => EditProdi::route('/{record}/edit'),
         ];
     }
-    
+
 }

@@ -13,6 +13,7 @@ class Soals extends Model
         'setting_soal_id',
         'mata_kuliah_id',
         'user_id',
+        'nama_soal', // Tambahkan ini
         'jenis_soal',
         'tipe_soal',
     ];

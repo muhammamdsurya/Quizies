@@ -30,6 +30,8 @@ class MahasiswaResource extends Resource
 
     protected static ?string $pluralModelLabel = 'Data Mahasiswa';
 
+     protected static ?int $navigationSort = 2;
+
     protected static ?string $modelLabel = 'Data Mahasiswa';
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedAcademicCap;

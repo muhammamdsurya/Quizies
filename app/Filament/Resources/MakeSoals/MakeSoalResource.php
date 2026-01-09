@@ -42,19 +42,30 @@ class MakeSoalResource extends Resource
 
     protected static ?string $recordTitleAttribute = 'MakeSoal';
 
+     protected static ?int $navigationSort = 0;
+
     protected static ?string $maxWidth = 'full';
 
-    public static function getEloquentQuery(): Builder
+    protected static ?string $navigationLabel = 'Bank Soal';
+
+
+    public static function canViewAny(): bool
+{
+    return auth()->user()->role !== 'mahasiswa';
+}
+
+   public static function getEloquentQuery(): Builder
 {
     $user = auth()->user();
     $query = parent::getEloquentQuery();
 
     if ($user->role === 'dosen') {
-        return $query->where('id', $user->id);
+        // PERBAIKAN: Filter soal yang kolom user_id nya sesuai dengan ID Dosen login
+        return $query->where('user_id', $user->id);
     }
 
     if ($user->role === 'mahasiswa') {
-        // Logika mahasiswa melihat soal yang aktif (misal sesuai kelasnya)
+        // Sesuaikan dengan kolom status aktif di tabel Soals Anda
         return $query->where('is_published', true);
     }
 
@@ -88,8 +99,12 @@ class MakeSoalResource extends Resource
                 ->preload()
                 ->searchable()
                 ->required()
-                ->columnSpanFull(), // Melebar di baris pertama
-
+                , // Melebar di baris pertama
+TextInput::make('nama_soal')
+    ->label('Nama Paket Soal')
+    ->placeholder('Contoh: Soal UTS Basis Data Kelas A')
+    ->required()
+    ->maxLength(255),
             Select::make('setting_soal_id')
                 ->label('Tahun Akademik')
                 ->relationship('settingSoal', 'tahun_akademik')
@@ -189,13 +204,7 @@ class MakeSoalResource extends Resource
         ->cloneable()
         ->schema([
            TextInput::make('nomor_soal')
-            ->hidden()
-            // Gunakan count + 1, tapi pastikan hanya saat data baru
-            ->default(function ($get) {
-                $count = count($get('../../detailSoals') ?? []);
-                // Jika count 0 (belum ada soal), maka defaultnya 1
-                return $count + 1;
-            }),
+           ->hidden(),
 
             RichEditor::make('pertanyaan')
                 ->required()

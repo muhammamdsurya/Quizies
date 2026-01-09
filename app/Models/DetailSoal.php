@@ -20,4 +20,16 @@ class DetailSoal extends Model
         'kunci_jawaban',
         'petunjuk_esai'
     ];
+
+    protected static function booted()
+{
+    static::creating(function ($detailSoal) {
+        // Jika nomor_soal belum terisi dari form
+        if (blank($detailSoal->nomor_soal)) {
+            // Hitung jumlah soal yang sudah ada untuk ID Soal (header) tersebut
+            $lastNumber = static::where('soals_id', $detailSoal->soals_id)->max('nomor_soal');
+            $detailSoal->nomor_soal = ($lastNumber ?? 0) + 1;
+        }
+    });
+}
 }

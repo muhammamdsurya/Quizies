@@ -28,6 +28,8 @@ class SettingSoalResource extends Resource
 
     protected static ?string $recordTitleAttribute = 'SettingSoal';
 
+    protected static ?string $navigationLabel = 'Pengaturan Soal';
+
     protected static ?string $maxWidth = 'full';
 
     public static function canViewAny(): bool
