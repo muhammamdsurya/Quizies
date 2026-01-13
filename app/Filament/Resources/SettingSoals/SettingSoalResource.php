@@ -30,6 +30,12 @@ class SettingSoalResource extends Resource
 
     protected static ?string $navigationLabel = 'Pengaturan Soal';
 
+     // Mengganti judul halaman (Title) dan Breadcrumbs
+    protected static ?string $pluralModelLabel = 'Pengaturan Soal';
+
+    // Mengganti label untuk satu record (misal saat View)
+    protected static ?string $modelLabel = 'Pengaturan Soal';
+
     protected static ?string $maxWidth = 'full';
 
     public static function canViewAny(): bool
