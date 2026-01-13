@@ -51,6 +51,12 @@ class UjianResource extends Resource
     return $query->where('user_id', $user->id);
 }
 
+public static function canCreate(): bool
+{
+    // Mengembalikan false akan menyembunyikan tombol "New" di header tabel
+    return false;
+}
+
     public static function form(Schema $schema): Schema
     {
         return $schema->schema([

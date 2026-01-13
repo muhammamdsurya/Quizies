@@ -5,6 +5,7 @@ namespace App\Filament\Widgets;
 use Filament\Widgets\StatsOverviewWidget as BaseWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
 use Illuminate\Support\Facades\Auth;
+use App\Models\UjianAttempt;
 
 class MahasiswaWidget extends BaseWidget
 {
@@ -38,12 +39,15 @@ class MahasiswaWidget extends BaseWidget
                 ->descriptionIcon('heroicon-m-book-open')
                 ->color('success'),
 
-            // Stat 3: Tagihan / Kehadiran (Contoh Stat Menarik)
-            Stat::make('Kehadiran', '95%')
-                ->description('Sangat Baik')
-                ->descriptionIcon('heroicon-m-check-badge')
-                ->chart([80, 85, 90, 92, 95])
-                ->color('info'),
+          Stat::make('Ujian Dikerjakan', UjianAttempt::where('user_id', Auth::id())->count() . ' Ujian')
+    ->description('Total ujian yang telah Anda selesaikan')
+    ->descriptionIcon('heroicon-m-clipboard-document-check')
+    ->chart([
+        // Contoh logik chart: menampilkan tren pengerjaan dalam 5 periode terakhir
+        UjianAttempt::where('user_id', Auth::id())->count(),
+        UjianAttempt::where('user_id', Auth::id())->count(),
+    ])
+    ->color('success'),
         ];
     }
 }

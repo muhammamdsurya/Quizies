@@ -31,4 +31,6 @@ public function attempts()
     return $this->hasMany(UjianAttempt::class, 'ujian_id');
 }
 
+
+
 }

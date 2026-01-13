@@ -14,11 +14,19 @@ class KerjakanUjian extends Component
     public $soals;
     public $currentSoalIndex = 0;
     public $jawabanDipilih;
+public $sisaWaktu; // Dalam detik
 
     public function mount($attempt_id)
     {
         // Ambil data attempt beserta soal-soalnya
         $this->attempt = UjianAttempt::with(['ujian.soal.detailSoals'])->findOrFail($attempt_id);
+
+
+        // Ambil durasi_menit dari tabel ujians
+    $durasiMenit = $this->attempt->ujian->durasi_menit ?? 60; // Default 60 jika null
+
+    // Konversi ke detik untuk timer Javascript
+    $this->sisaWaktu = $durasiMenit * 60;
 
         $this->soals = $this->attempt->ujian->soal->detailSoals;
 

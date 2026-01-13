@@ -15,7 +15,7 @@ use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\ToggleButtons;
 use Filament\Forms\Components\TextArea;
-use Filament\Forms\Components\RichEditor;
+use Filament\Forms\Components\MarkdownEditor;
 use Filament\Schemas\Components\Grid;
 use BackedEnum;
 use Filament\Schemas\Components\Section;
@@ -158,8 +158,10 @@ TextInput::make('nama_soal')
             ->extraAttributes([
                     'class' => 'fi-fo-toggle-buttons-large', ])
                 ->label('Tipe Soal')
+                ->live()
                 ->options(function ($get) {
-        $setting = \App\Models\SettingSoal::find($get('setting_soal_id'));
+        $setting = \App\Models\SettingSoal::find($get('setting_soal_id'))
+        ;
 
         if (! $setting || ! $setting->tipe_soal_options) {
             return [];
@@ -206,7 +208,7 @@ TextInput::make('nama_soal')
            TextInput::make('nomor_soal')
            ->hidden(),
 
-            RichEditor::make('pertanyaan')
+            MarkdownEditor::make('pertanyaan')
                 ->required()
                 ->columnSpanFull(),
 

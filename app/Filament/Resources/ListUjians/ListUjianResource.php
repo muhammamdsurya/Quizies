@@ -10,6 +10,7 @@ use App\Filament\Resources\ListUjians\Schemas\ListUjianForm;
 use App\Filament\Resources\ListUjians\Schemas\ListUjianInfolist;
 use App\Filament\Resources\ListUjians\Tables\ListUjiansTable;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Auth;
 use Filament\Tables\Columns\TextColumn;
 use App\Models\Ujians;
 use Filament\Actions\Action;
@@ -34,19 +35,26 @@ protected static ?string $slug = 'daftar-ujian-mahasiswa'; // Slug harus unik
 
     protected static ?string $recordTitleAttribute = 'ListUjian';
 
+    // Mengganti judul halaman (Title) dan Breadcrumbs
+    protected static ?string $pluralModelLabel = 'Ujian Tersedia';
+
+    // Mengganti label untuk satu record (misal saat View)
+    protected static ?string $modelLabel = 'Ujian Tersedia';
+
     public static function shouldRegisterNavigation(): bool
 {
     return auth()->user()->role === 'mahasiswa';
 }
 
-    public static function getEloquentQuery(): Builder
+   public static function getEloquentQuery(): Builder
 {
-    // Hanya tampilkan ujian yang sedang berlangsung (Mulai <= Sekarang <= Selesai)
     return parent::getEloquentQuery()
         ->where('waktu_mulai', '<=', now())
-        ->where('waktu_selesai', '>=', now());
+        ->where('waktu_selesai', '>=', now())
+        ->whereDoesntHave('attempts', function (Builder $query) {
+            $query->where('user_id', Auth::id());
+        });
 }
-
     public static function form(Schema $schema): Schema
     {
         return ListUjianForm::configure($schema);
@@ -128,9 +136,7 @@ protected static ?string $slug = 'daftar-ujian-mahasiswa'; // Slug harus unik
     {
         return [
             'index' => ListListUjians::route('/'),
-            'create' => CreateListUjian::route('/create'),
             'view' => ViewListUjian::route('/{record}'),
-            'edit' => EditListUjian::route('/{record}/edit'),
         ];
     }
 }

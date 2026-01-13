@@ -120,13 +120,18 @@ public static function getEloquentQuery(): Builder
 
         Select::make('dosens') // Nama field HARUS sama dengan nama fungsi relasi di model
     ->label('Dosen Pengajar')
-    ->relationship('dosens', 'id') // 'dosens' adalah nama relasi, 'id' field yg disimpan
-    ->multiple() // Wajib karena ini Many-to-Many
-    ->searchable()
+    ->relationship(
+        name: 'dosens',
+        titleAttribute: 'id', // Tetap simpan ID dosen
+        modifyQueryUsing: fn (Builder $query) => $query
+            ->join('users', 'users.id', '=', 'dosen_profiles.user_id') // Join ke tabel users
+            ->select('dosen_profiles.*') // Pastikan hanya kolom dosen_profiles yang diambil agar tidak bentrok
+    )
+    ->getOptionLabelFromRecordUsing(fn ($record) => $record->user->name)
+    ->multiple()
+    ->searchable(['users.name']) // Sekarang SQL bisa menemukan users.name karena sudah di-join
     ->preload()
-    ->getOptionLabelFromRecordUsing(fn ($record) => $record->user->name) // Menampilkan nama dari relasi user
-    ->required(),
-    ]);
+    ->required(),    ]);
 }
 
 // Fungsi Helper untuk Generate Kode
