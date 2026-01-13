@@ -48,6 +48,12 @@ class MakeSoalResource extends Resource
 
     protected static ?string $navigationLabel = 'Bank Soal';
 
+    // Mengganti judul halaman (Title) dan Breadcrumbs
+    protected static ?string $pluralModelLabel = 'Bank Soal';
+
+    // Mengganti label untuk satu record (misal saat View)
+    protected static ?string $modelLabel = 'Bank Soal';
+
 
     public static function canViewAny(): bool
 {
@@ -205,6 +211,17 @@ TextInput::make('nama_soal')
         ->collapsible()
         ->cloneable()
         ->schema([
+
+            // HIDDEN FIELD: Tambahkan ini agar tipe_soal dari induk ikut tersimpan ke anak
+      TextInput::make('tipe_soal')
+    ->hidden()
+    // Ambil nilai dari induk secara real-time
+    ->default(fn ($get) => $get('../../tipe_soal'))
+    // Pastikan nilai dikirim ke database saat simpan
+    ->dehydrated(true)
+    // Paksa update nilai jika tipe_soal di atas berubah
+    ->afterStateHydrated(fn ($set, $get) => $set('tipe_soal', $get('../../tipe_soal'))),
+
            TextInput::make('nomor_soal')
            ->hidden(),
 
@@ -215,20 +232,22 @@ TextInput::make('nama_soal')
             // Form Dinamis PG
             Grid::make(2)
                 ->schema([
-                    TextInput::make('opsi_a')->required(),
-                    TextInput::make('opsi_b')->required(),
-                    TextInput::make('opsi_c')->required(),
-                    TextInput::make('opsi_d')->required(),
-                    Select::make('kunci_jawaban')
-                        ->options(['a'=>'A','b'=>'B','c'=>'C','d'=>'D'])
-                        ->required(),
-                ])
-                ->visible(fn ($get) => $get('../../tipe_soal') === 'pg'),
+                // Gunakan required kondisional agar tidak error saat input esai
+                TextInput::make('opsi_a')->required(fn ($get) => $get('../../tipe_soal') === 'pg'),
+                TextInput::make('opsi_b')->required(fn ($get) => $get('../../tipe_soal') === 'pg'),
+                TextInput::make('opsi_c')->required(fn ($get) => $get('../../tipe_soal') === 'pg'),
+                TextInput::make('opsi_d')->required(fn ($get) => $get('../../tipe_soal') === 'pg'),
+                Select::make('kunci_jawaban')
+                    ->options(['a'=>'A','b'=>'B','c'=>'C','d'=>'D'])
+                    ->required(fn ($get) => $get('../../tipe_soal') === 'pg'),
+            ])
+            ->visible(fn ($get) => $get('../../tipe_soal') === 'pg'),
 
-            // Form Dinamis Esai
-            Textarea::make('petunjuk_esai')
-                ->label('Petunjuk Pengerjaan Esai')
-                ->visible(fn ($get) => $get('../../tipe_soal') === 'esai'),
+           // Form Dinamis Esai
+        Textarea::make('petunjuk_esai')
+            ->label('Petunjuk Pengerjaan Esai')
+            ->required(fn ($get) => $get('../../tipe_soal') === 'esai')
+            ->visible(fn ($get) => $get('../../tipe_soal') === 'esai'),
         ])
         ->createItemButtonLabel('Tambah Soal')
         ->columnSpanFull(),

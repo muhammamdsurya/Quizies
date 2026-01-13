@@ -29,6 +29,7 @@ class Soals extends Model
         return $this->hasMany(DetailSoal::class, 'soals_id');
     }
 
+
     // Tambahkan juga relasi ke SettingSoal agar dropdown di form berfungsi
     public function settingSoal()
     {

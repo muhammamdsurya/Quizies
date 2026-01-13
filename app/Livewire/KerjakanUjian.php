@@ -25,6 +25,7 @@ public $sisaWaktu; // Dalam detik
         // Ambil durasi_menit dari tabel ujians
     $durasiMenit = $this->attempt->ujian->durasi_menit ?? 60; // Default 60 jika null
 
+
     // Konversi ke detik untuk timer Javascript
     $this->sisaWaktu = $durasiMenit * 60;
 
@@ -92,9 +93,10 @@ public $sisaWaktu; // Dalam detik
 
     public function render()
     {
+        $soalAktif = $this->soals[$this->currentSoalIndex];
         return view('livewire.kerjakan-ujian', [
-            'soalAktif' => $this->soals[$this->currentSoalIndex]
-        ])->layout('components.layouts.app'); // Pastikan Anda punya resources/views/layouts/app.blade.php
+            'soalAktif' => $soalAktif
+        ])->layout('components.layouts.ujian'); // Pastikan Anda punya resources/views/layouts/app.blade.php
     }
 
     public function finish()
@@ -119,6 +121,6 @@ public $sisaWaktu; // Dalam detik
     // 5. Kirim notifikasi sukses dan redirect
     session()->flash('message', "Ujian selesai! Skor Anda: " . round($skorAkhir, 2));
 
-    return redirect()->route('filament.admin.resources.list-ujians.index');
+   return redirect()->route('filament.admin.resources.riwayat-ujians.index');
 }
 }

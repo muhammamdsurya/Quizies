@@ -31,6 +31,10 @@ public function attempts()
     return $this->hasMany(UjianAttempt::class, 'ujian_id');
 }
 
-
+// Di Model Ujians/Soals
+public function detailSoals()
+{
+    return $this->hasMany(DetailSoal::class, 'soals_id');
+}
 
 }

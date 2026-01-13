@@ -13,10 +13,19 @@ return new class extends Migration
     {
         Schema::create('jawaban_mahasiswas', function (Blueprint $table) {
     $table->id();
-    $table->foreignId('ujian_attempt_id')->constrained()->cascadeOnDelete();
-    $table->foreignId('detail_soal_id')->constrained('detail_soal');
-    $table->text('jawaban'); // Menyimpan pilihan 'a', 'b', dll atau teks esai
-    $table->boolean('is_benar')->nullable(); // Untuk auto-grading PG
+    $table->foreignId('ujian_attempt_id')->constrained('ujian_attempts')->cascadeOnDelete();
+    $table->foreignId('detail_soal_id')->constrained('detail_soal')->cascadeOnDelete();
+
+    // Gunakan text agar bisa menampung jawaban esai yang panjang
+    $table->text('jawaban')->nullable(); 
+
+    // Untuk auto-grading PG
+    $table->boolean('is_benar')->nullable(); 
+
+    // Untuk penilaian manual Esai
+    $table->integer('nilai_esai')->nullable(); 
+    $table->text('catatan_dosen')->nullable();
+
     $table->timestamps();
 });
     }

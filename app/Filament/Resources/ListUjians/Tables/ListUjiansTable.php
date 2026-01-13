@@ -72,6 +72,6 @@ class ListUjiansTable
             // PENGATURAN AGAR TABEL MATI (READ-ONLY)
             ->actions([]) // Menghapus tombol 'kerjakan' atau tombol lainnya
             ->bulkActions([]) // Menghapus checkbox massal
-            ->recordUrl(null); // Membuat baris tidak bisa diklik (tidak masuk ke View/Edit)
+            ; // Membuat baris tidak bisa diklik (tidak masuk ke View/Edit)
     }
 }

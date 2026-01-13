@@ -10,6 +10,14 @@ use App\Filament\Resources\RiwayatUjians\Schemas\RiwayatUjianForm;
 use App\Filament\Resources\RiwayatUjians\Schemas\RiwayatUjianInfolist;
 use App\Filament\Resources\RiwayatUjians\Tables\RiwayatUjiansTable;
 use App\Models\Ujians;
+// Tambahkan blok import Infolist ini secara lengkap:
+use Filament\Infolists\Infolist;
+use Filament\Infolists\Components\Section;
+use Filament\Infolists\Components\TextEntry;
+use Filament\Infolists\Components\RepeatableEntry;
+use Filament\Infolists\Components\Grid;
+use Filament\Infolists\Components\IconEntry;
+use Filament\Forms\Components\TextInput;
 use Illuminate\Support\Facades\Auth;
 use App\Filament\Resources\ListUjians\Tables\ListUjiansTable;
 use Filament\Resources\Resource;
@@ -62,6 +70,11 @@ class RiwayatUjianResource extends Resource
     {
         // 4. Gunakan konfigurasi tabel yang sudah ada agar tidak kerja dua kali
         return ListUjiansTable::configure($table);
+    }
+
+    public static function infolist(Schema $schema): Schema
+    {
+        return RiwayatUjianInfolist::configure($schema);
     }
 
     public static function getPages(): array

@@ -34,6 +34,12 @@ class UjianResource extends Resource
 
     protected static ?string $navigationLabel = 'Buat Ujian';
 
+    // Mengganti judul halaman (Title) dan Breadcrumbs
+    protected static ?string $pluralModelLabel = 'Data Ujian';
+
+    // Mengganti label untuk satu record (misal saat View)
+    protected static ?string $modelLabel = 'Data Ujian';
+
     public static function shouldRegisterNavigation(): bool
 {
     return in_array(auth()->user()->role, ['dosen', 'kaprodi']);
@@ -49,12 +55,6 @@ class UjianResource extends Resource
     }
 
     return $query->where('user_id', $user->id);
-}
-
-public static function canCreate(): bool
-{
-    // Mengembalikan false akan menyembunyikan tombol "New" di header tabel
-    return false;
 }
 
     public static function form(Schema $schema): Schema

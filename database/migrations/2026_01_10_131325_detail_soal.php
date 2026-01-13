@@ -13,11 +13,12 @@ return new class extends Migration
     {
         Schema::create('detail_soal', function (Blueprint $table) {
     $table->id();
-    // Relasi ke header
     $table->foreignId('soals_id')->constrained('soals')->cascadeOnDelete();
-
     $table->integer('nomor_soal');
     $table->text('pertanyaan');
+
+    // Tambahkan ini: untuk membedakan logika tampilan & penilaian
+   $table->string('tipe_soal');
 
     // Kolom PG (nullable)
     $table->text('opsi_a')->nullable();
@@ -26,9 +27,8 @@ return new class extends Migration
     $table->text('opsi_d')->nullable();
     $table->string('kunci_jawaban', 1)->nullable();
 
-    // Kolom Esai (nullable)
+    // Kolom Esai (Seringkali esai butuh bobot nilai berbeda)
     $table->text('petunjuk_esai')->nullable();
-
     $table->timestamps();
 });
     }

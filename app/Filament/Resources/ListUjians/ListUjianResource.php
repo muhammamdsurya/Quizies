@@ -87,18 +87,6 @@ protected static ?string $slug = 'daftar-ujian-mahasiswa'; // Slug harus unik
             TextColumn::make('waktu_selesai')
                 ->label('Batas Waktu')
                 ->dateTime('H:i T'),
-
-                TextColumn::make('skor')
-    ->label('Nilai')
-    ->state(function ($record) {
-        $attempt = \App\Models\UjianAttempt::where('user_id', auth()->id())
-            ->where('ujian_id', $record->id)
-            ->first();
-        return $attempt ? $attempt->skor_akhir : null;
-    })
-    ->placeholder('-') // Jika belum ada nilai
-    ->badge()
-    ->color('info'),
         ])
         ->actions([
             Action::make('kerjakan')
@@ -136,7 +124,7 @@ protected static ?string $slug = 'daftar-ujian-mahasiswa'; // Slug harus unik
     {
         return [
             'index' => ListListUjians::route('/'),
-            'view' => ViewListUjian::route('/{record}'),
+
         ];
     }
 }

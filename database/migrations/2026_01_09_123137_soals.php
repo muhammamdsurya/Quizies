@@ -13,8 +13,8 @@ return new class extends Migration
     {
        Schema::create('soals', function (Blueprint $table) {
         $table->id();
-        $table->foreignId('setting_soal_id')->constrained('setting_soals');
-        $table->foreignId('mata_kuliah_id')->constrained('mata_kuliahs');
+        $table->foreignId('setting_soal_id')->constrained('setting_soals')->onDelete('cascade'); // Tambahkan ini;
+        $table->foreignId('mata_kuliah_id')->constrained('mata_kuliahs')->onDelete('cascade'); // Tambahkan ini;
         $table->foreignId('user_id')->constrained('users');
 
         // Cukup tulis begini, dia otomatis akan berada di bawah user_id
