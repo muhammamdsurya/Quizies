@@ -3,6 +3,9 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Ujians extends Model
 {
@@ -35,6 +38,25 @@ public function attempts()
 public function detailSoals()
 {
     return $this->hasMany(DetailSoal::class, 'soals_id');
+}
+
+public function mataKuliah(): BelongsTo
+{
+    // Ujian memiliki satu Matkul melalui Soal
+    return $this->hasOneThrough(
+        MataKuliah::class,
+        Soals::class,
+        'id', // Foreign key di tabel soals (id soal)
+        'id', // Foreign key di tabel mata_kuliahs (id matkul)
+        'soals_id', // Local key di tabel ujians
+        'mata_kuliah_id' // Local key di tabel soals yang mengarah ke matkul
+    );
+}
+
+public function mahasiswas(): BelongsToMany
+{
+    // Asumsi ada tabel pivot 'krs' atau 'mata_kuliah_user'
+    return $this->belongsToMany(User::class, 'krs', 'mata_kuliah_id', 'user_id');
 }
 
 }

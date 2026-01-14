@@ -51,8 +51,15 @@ protected static ?string $slug = 'daftar-ujian-mahasiswa'; // Slug harus unik
     return parent::getEloquentQuery()
         ->where('waktu_mulai', '<=', now())
         ->where('waktu_selesai', '>=', now())
+
+        // Cek apakah Ujian ini memiliki Soal yang terhubung ke Mata Kuliah
+        // yang diambil oleh Mahasiswa yang sedang login
+        ->whereHas('soal.mataKuliah.mahasiswas', function (Builder $query) {
+            $query->where('user_id', auth()->id());
+        })
+
         ->whereDoesntHave('attempts', function (Builder $query) {
-            $query->where('user_id', Auth::id());
+            $query->where('user_id', auth()->id());
         });
 }
     public static function form(Schema $schema): Schema
