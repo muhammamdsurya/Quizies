@@ -2,9 +2,10 @@
 
 namespace App\Filament\Resources\Prodis\Tables;
 
+use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkActionGroup;
-use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\DeleteAction;
+use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
 use Filament\Tables\Columns\TextColumn;
@@ -32,13 +33,13 @@ class ProdisTable
             ->filters([
                 //
             ])
-             ->recordActions([
-                EditAction::make()
-                ->visible(fn () => auth()->user()?->role === 'kaprodi'),
-
-                 DeleteAction::make()
-                ->visible(fn () => auth()->user()?->role === 'kaprodi')
-                ->requiresConfirmation(),
+            // Aksi dikelompokkan dalam menu agar tabel tetap ringkas di layar kecil
+            ->recordActions([
+                ActionGroup::make([
+                    ViewAction::make(),
+                    EditAction::make(),
+                    DeleteAction::make(),
+                ]),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([

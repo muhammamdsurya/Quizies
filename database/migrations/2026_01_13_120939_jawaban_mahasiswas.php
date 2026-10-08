@@ -12,22 +12,22 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('jawaban_mahasiswas', function (Blueprint $table) {
-    $table->id();
-    $table->foreignId('ujian_attempt_id')->constrained('ujian_attempts')->cascadeOnDelete();
-    $table->foreignId('detail_soal_id')->constrained('detail_soal')->cascadeOnDelete();
+            $table->id();
+            $table->foreignId('ujian_attempt_id')->constrained('ujian_attempts')->cascadeOnDelete();
+            $table->foreignId('detail_soal_id')->constrained('detail_soal')->cascadeOnDelete();
 
-    // Gunakan text agar bisa menampung jawaban esai yang panjang
-    $table->text('jawaban')->nullable(); 
+            // Gunakan text agar bisa menampung jawaban esai yang panjang
+            $table->text('jawaban')->nullable();
 
-    // Untuk auto-grading PG
-    $table->boolean('is_benar')->nullable(); 
+            // Untuk auto-grading PG
+            $table->boolean('is_benar')->nullable();
 
-    // Untuk penilaian manual Esai
-    $table->integer('nilai_esai')->nullable(); 
-    $table->text('catatan_dosen')->nullable();
+            // Untuk penilaian manual Esai
+            $table->integer('nilai_esai')->nullable();
+            $table->text('catatan_dosen')->nullable();
 
-    $table->timestamps();
-});
+            $table->timestamps();
+        });
     }
 
     /**
@@ -35,6 +35,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        //
+        Schema::dropIfExists('jawaban_mahasiswas');
     }
 };

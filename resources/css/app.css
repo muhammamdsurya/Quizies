@@ -8,8 +8,13 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
+/* Sembunyikan elemen Alpine (pop-up) sebelum Alpine aktif */
+[x-cloak] {
+    display: none !important;
+}
+
 @theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+    --font-sans: 'Inter Variable', 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
 
     --color-zinc-50: #fafafa;
     --color-zinc-100: #f5f5f5;
@@ -61,6 +66,59 @@ select:focus[data-flux-control] {
     @apply outline-hidden ring-2 ring-accent ring-offset-2 ring-offset-accent-foreground;
 }
 
-/* \[:where(&)\]:size-4 {
-    @apply size-4;
-} */
+/* Konten soal (hasil render Markdown) di halaman ujian */
+.soal-content > * + * {
+    margin-top: .75rem;
+}
+
+.soal-content ul {
+    list-style: disc;
+    padding-left: 1.5rem;
+}
+
+.soal-content ol {
+    list-style: decimal;
+    padding-left: 1.5rem;
+}
+
+.soal-content strong {
+    font-weight: 700;
+}
+
+.soal-content a {
+    color: var(--color-blue-600);
+    text-decoration: underline;
+}
+
+.soal-content code {
+    border-radius: .375rem;
+    background: var(--color-slate-100);
+    padding: .1rem .35rem;
+    font-size: .9em;
+}
+
+.soal-content pre {
+    overflow-x: auto;
+    border-radius: .75rem;
+    background: var(--color-slate-900);
+    padding: 1rem;
+    color: var(--color-slate-100);
+    font-size: .875rem;
+}
+
+.soal-content pre code {
+    background: transparent;
+    padding: 0;
+}
+
+.soal-content img {
+    max-width: 100%;
+    height: auto;
+    border-radius: .5rem;
+}
+
+.soal-content blockquote {
+    border-left: 4px solid var(--color-slate-200);
+    padding-left: 1rem;
+    color: var(--color-slate-600);
+}

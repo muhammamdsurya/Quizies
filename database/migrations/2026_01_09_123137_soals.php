@@ -9,21 +9,21 @@ return new class extends Migration
     /**
      * Run the migrations.
      */
-   public function up(): void
+    public function up(): void
     {
-       Schema::create('soals', function (Blueprint $table) {
-        $table->id();
-        $table->foreignId('setting_soal_id')->constrained('setting_soals')->onDelete('cascade'); // Tambahkan ini;
-        $table->foreignId('mata_kuliah_id')->constrained('mata_kuliahs')->onDelete('cascade'); // Tambahkan ini;
-        $table->foreignId('user_id')->constrained('users');
+        Schema::create('soals', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('setting_soal_id')->constrained('setting_soals')->onDelete('cascade'); // Tambahkan ini;
+            $table->foreignId('mata_kuliah_id')->constrained('mata_kuliahs')->onDelete('cascade'); // Tambahkan ini;
+            $table->foreignId('user_id')->constrained('users');
 
-        // Cukup tulis begini, dia otomatis akan berada di bawah user_id
-        $table->string('nama_soal')->nullable();
+            // Cukup tulis begini, dia otomatis akan berada di bawah user_id
+            $table->string('nama_soal')->nullable();
 
-        $table->string('jenis_soal');
-        $table->string('tipe_soal');
-        $table->timestamps();
-});
+            $table->string('jenis_soal');
+            $table->string('tipe_soal');
+            $table->timestamps();
+        });
     }
 
     /**
@@ -31,8 +31,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('soals', function (Blueprint $table) {
-        $table->dropColumn('nama_soal');
-    });
+        Schema::dropIfExists('soals');
     }
 };

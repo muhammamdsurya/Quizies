@@ -12,14 +12,14 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('ujian_attempts', function (Blueprint $table) {
-    $table->id();
-    $table->foreignId('user_id')->constrained()->cascadeOnDelete(); // Mahasiswa
-    $table->foreignId('ujian_id')->constrained('ujians')->cascadeOnDelete();
-    $table->dateTime('mulai_pada');
-    $table->dateTime('selesai_pada')->nullable(); // Terisi jika sudah klik submit
-    $table->integer('skor_akhir')->nullable();
-    $table->timestamps();
-});
+            $table->id();
+            $table->foreignId('user_id')->constrained()->cascadeOnDelete(); // Mahasiswa
+            $table->foreignId('ujian_id')->constrained('ujians')->cascadeOnDelete();
+            $table->dateTime('mulai_pada');
+            $table->dateTime('selesai_pada')->nullable(); // Terisi jika sudah klik submit
+            $table->integer('skor_akhir')->nullable();
+            $table->timestamps();
+        });
     }
 
     /**
@@ -27,6 +27,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        //
+        Schema::dropIfExists('ujian_attempts');
     }
 };

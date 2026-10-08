@@ -3,26 +3,27 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
-use Illuminate\Database\Eloquent\Builder;
+use Filament\Auth\MultiFactor\Email\Concerns\InteractsWithEmailAuthentication;
+use Filament\Auth\MultiFactor\Email\Contracts\HasEmailAuthentication;
+use Filament\Models\Contracts\FilamentUser;
+use Filament\Panel;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Str;
 use Laravel\Fortify\TwoFactorAuthenticatable;
-use Filament\Models\Contracts\FilamentUser;
-use Filament\Panel;
 
-class User extends Authenticatable implements FilamentUser
+class User extends Authenticatable implements FilamentUser, HasEmailAuthentication
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable, TwoFactorAuthenticatable;
+    use HasFactory, InteractsWithEmailAuthentication, Notifiable, TwoFactorAuthenticatable;
 
     /**
      * The attributes that are mass assignable.
      *
      * @var list<string>
      */
-    protected $fillable = ['name', 'email', 'password', 'role', 'nim', 'nidn'];
+    protected $fillable = ['name', 'email', 'password', 'role'];
 
     /**
      * The attributes that should be hidden for serialization.
@@ -46,7 +47,12 @@ class User extends Authenticatable implements FilamentUser
 
     public function canAccessPanel(Panel $panel): bool
     {
-        return true; // batasi nanti dengan role jika perlu
+        return true; // semua role (kaprodi, dosen, mahasiswa) memakai panel yang sama
+    }
+
+    public function hasRole(string ...$roles): bool
+    {
+        return in_array($this->role, $roles, true);
     }
 
     /**
@@ -54,18 +60,16 @@ class User extends Authenticatable implements FilamentUser
      */
     public function initials(): string
     {
-        return Str::of($this->name)->explode(' ')->take(2)->map(fn($word) => Str::substr($word, 0, 1))->implode('');
+        return Str::of($this->name)->explode(' ')->take(2)->map(fn ($word) => Str::substr($word, 0, 1))->implode('');
     }
 
-   public function dosenProfile()
-{
-    return $this->hasOne(DosenProfile::class);
-}
+    public function dosenProfile()
+    {
+        return $this->hasOne(DosenProfile::class);
+    }
 
-public function mahasiswaProfile()
-{
-    return $this->hasOne(MahasiswaProfile::class);
-}
-
-
+    public function mahasiswaProfile()
+    {
+        return $this->hasOne(MahasiswaProfile::class);
+    }
 }

@@ -2,25 +2,14 @@
 
 namespace App\Filament\Resources\ListUjians;
 
-use App\Filament\Resources\ListUjians\Pages\CreateListUjian;
-use App\Filament\Resources\ListUjians\Pages\EditListUjian;
 use App\Filament\Resources\ListUjians\Pages\ListListUjians;
-use App\Filament\Resources\ListUjians\Pages\ViewListUjian;
-use App\Filament\Resources\ListUjians\Schemas\ListUjianForm;
-use App\Filament\Resources\ListUjians\Schemas\ListUjianInfolist;
 use App\Filament\Resources\ListUjians\Tables\ListUjiansTable;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Support\Facades\Auth;
-use Filament\Tables\Columns\TextColumn;
 use App\Models\Ujians;
-use Filament\Actions\Action;
-use App\Models\UjianAttempt;
 use BackedEnum;
-use Filament\Tables;
 use Filament\Resources\Resource;
-use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 class ListUjianResource extends Resource
 {
@@ -28,12 +17,15 @@ class ListUjianResource extends Resource
 
     protected static ?string $model = Ujians::class;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedPlayCircle;
 
     protected static ?string $navigationLabel = 'Ujian Tersedia';
-protected static ?string $slug = 'daftar-ujian-mahasiswa'; // Slug harus unik
 
-    protected static ?string $recordTitleAttribute = 'ListUjian';
+    protected static ?string $slug = 'daftar-ujian-mahasiswa'; // Slug harus unik
+
+    protected static ?string $recordTitleAttribute = 'judul_ujian';
+
+    protected static bool $isGloballySearchable = false;
 
     // Mengganti judul halaman (Title) dan Breadcrumbs
     protected static ?string $pluralModelLabel = 'Ujian Tersedia';
@@ -41,97 +33,40 @@ protected static ?string $slug = 'daftar-ujian-mahasiswa'; // Slug harus unik
     // Mengganti label untuk satu record (misal saat View)
     protected static ?string $modelLabel = 'Ujian Tersedia';
 
-    public static function shouldRegisterNavigation(): bool
-{
-    return auth()->user()->role === 'mahasiswa';
-}
-
-   public static function getEloquentQuery(): Builder
-{
-    return parent::getEloquentQuery()
-        ->where('waktu_mulai', '<=', now())
-        ->where('waktu_selesai', '>=', now())
-
-        // Cek apakah Ujian ini memiliki Soal yang terhubung ke Mata Kuliah
-        // yang diambil oleh Mahasiswa yang sedang login
-        ->whereHas('soal.mataKuliah.mahasiswas', function (Builder $query) {
-            $query->where('user_id', auth()->id());
-        })
-
-        ->whereDoesntHave('attempts', function (Builder $query) {
-            $query->where('user_id', auth()->id());
-        });
-}
-    public static function form(Schema $schema): Schema
+    public static function canViewAny(): bool
     {
-        return ListUjianForm::configure($schema);
+        return auth()->user()->hasRole('mahasiswa');
     }
 
-    public static function infolist(Schema $schema): Schema
+    public static function canCreate(): bool
     {
-        return ListUjianInfolist::configure($schema);
+        return false;
     }
 
-  public static function table(Table $table): Table
-{
-    return $table
-        ->columns([
-            TextColumn::make('judul_ujian')->label('Ujian'),
-            TextColumn::make('soal.mataKuliah.nama')->label('Mata Kuliah'),
-
-            // --- KOLOM STATUS BARU ---
-            TextColumn::make('status_pengerjaan')
-                ->label('Status')
-                ->state(fn ($record) => $record->attempts->where('user_id', auth()->id())->first() ? 'Sudah' : 'Belum')
-                ->badge()
-                ->color(fn (string $state): string => match ($state) {
-                    'Sudah' => 'success',
-                    'Belum' => 'gray',
-                }),
-            // -------------------------
-
-            TextColumn::make('durasi_menit')->label('Durasi (Menit)'),
-            TextColumn::make('waktu_selesai')
-                ->label('Batas Waktu')
-                ->dateTime('H:i T'),
-        ])
-        ->actions([
-            Action::make('kerjakan')
-                ->label('Mulai Ujian')
-                ->color('success')
-                ->icon('heroicon-o-play')
-                ->requiresConfirmation()
-                ->modalHeading('Mulai Ujian?')
-                ->action(function ($record) {
-                    $attempt = \App\Models\UjianAttempt::create([
-                        'user_id' => auth()->id(),
-                        'ujian_id' => $record->id,
-                        'mulai_pada' => now(),
-                    ]);
-
-                    return redirect()->route('ujian.kerjakan', $attempt->id);
-                })
-                // Logika hidden ini sudah benar untuk menghilangkan tombol jika sudah ada attempt
-                ->hidden(fn ($record) =>
-                    \App\Models\UjianAttempt::where('user_id', auth()->id())
-                        ->where('ujian_id', $record->id)
-                        ->exists()
-                ),
-        ]);
-}
-
-    public static function getRelations(): array
+    public static function getEloquentQuery(): Builder
     {
-        return [
-            //
-        ];
+        $userId = auth()->id();
+
+        return parent::getEloquentQuery()
+            ->where('waktu_mulai', '<=', now())
+            ->where('waktu_selesai', '>=', now())
+            // Hanya ujian yang sudah berisi soal
+            ->whereHas('soal.detailSoals')
+            // Hanya ujian dari Mata Kuliah yang diambil mahasiswa yang sedang login
+            ->whereHas('soal.mataKuliah.mahasiswas', fn (Builder $query) => $query->where('user_id', $userId))
+            // Ujian yang sudah dikumpulkan pindah ke Riwayat; yang belum selesai bisa dilanjutkan
+            ->whereDoesntHave('attempts', fn (Builder $query) => $query->where('user_id', $userId)->whereNotNull('selesai_pada'));
+    }
+
+    public static function table(Table $table): Table
+    {
+        return ListUjiansTable::configure($table);
     }
 
     public static function getPages(): array
     {
         return [
             'index' => ListListUjians::route('/'),
-
         ];
     }
 }

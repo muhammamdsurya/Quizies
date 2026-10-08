@@ -15,14 +15,15 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Model;
 
 class ProdiResource extends Resource
 {
     protected static ?string $model = Prodi::class;
 
-     protected static ?string $slug = 'prodi';
+    protected static ?string $slug = 'prodi';
 
-     protected static ?int $navigationSort = 5;
+    protected static ?int $navigationSort = 5;
 
     protected static ?string $navigationLabel = 'Program Studi';
 
@@ -33,6 +34,27 @@ class ProdiResource extends Resource
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
 
     protected static ?string $recordTitleAttribute = 'nama';
+
+    // Semua role boleh melihat, hanya Kaprodi yang boleh mengubah
+    public static function canCreate(): bool
+    {
+        return auth()->user()->hasRole('kaprodi');
+    }
+
+    public static function canEdit(Model $record): bool
+    {
+        return auth()->user()->hasRole('kaprodi');
+    }
+
+    public static function canDelete(Model $record): bool
+    {
+        return auth()->user()->hasRole('kaprodi');
+    }
+
+    public static function canDeleteAny(): bool
+    {
+        return auth()->user()->hasRole('kaprodi');
+    }
 
     public static function form(Schema $schema): Schema
     {
@@ -58,12 +80,11 @@ class ProdiResource extends Resource
 
     public static function getPages(): array
     {
-       return [
+        return [
             'index' => ListProdis::route('/'),
             'create' => CreateProdi::route('/create'),
             'view' => ViewProdi::route('/{record}'),
             'edit' => EditProdi::route('/{record}/edit'),
         ];
     }
-
 }

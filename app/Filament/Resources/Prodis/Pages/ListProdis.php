@@ -13,8 +13,7 @@ class ListProdis extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
-            CreateAction::make()
-             ->visible(fn () => auth()->user()->role === 'kaprodi'),
+            CreateAction::make(),
         ];
     }
 }

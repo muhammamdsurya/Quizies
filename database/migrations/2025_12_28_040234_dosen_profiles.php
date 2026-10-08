@@ -12,15 +12,15 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('dosen_profiles', function (Blueprint $table) {
-    $table->id();
-    $table->foreignId('user_id')->constrained()->cascadeOnDelete();
-    $table->string('nidn')->unique();
-    $table->foreignId('prodi_id')->constrained('prodis');
-    $table->string('jabatan');
-    $table->date('tanggal_masuk');
-    $table->string('status_aktif');
-    $table->timestamps();
-});
+            $table->id();
+            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
+            $table->string('nidn')->unique();
+            $table->foreignId('prodi_id')->constrained('prodis');
+            $table->string('jabatan');
+            $table->date('tanggal_masuk');
+            $table->string('status_aktif');
+            $table->timestamps();
+        });
 
     }
 
@@ -29,6 +29,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        //
+        Schema::dropIfExists('dosen_profiles');
     }
 };

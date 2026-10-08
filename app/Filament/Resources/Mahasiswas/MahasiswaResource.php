@@ -2,23 +2,24 @@
 
 namespace App\Filament\Resources\Mahasiswas;
 
-use App\Models\User;
-use Illuminate\Database\Eloquent\Builder;
 use App\Filament\Resources\Mahasiswas\Pages\CreateMahasiswa;
 use App\Filament\Resources\Mahasiswas\Pages\EditMahasiswa;
 use App\Filament\Resources\Mahasiswas\Pages\ListMahasiswas;
 use App\Filament\Resources\Mahasiswas\Pages\ViewMahasiswa;
+use App\Filament\Resources\Mahasiswas\Schemas\MahasiswaInfolist;
 use App\Filament\Resources\Mahasiswas\Tables\MahasiswasTable;
+use App\Models\User;
 use BackedEnum;
-use Filament\Resources\Resource;
-use Filament\Schemas\Schema;
-use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\DatePicker;
-use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Hidden;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TextInput;
+use Filament\Resources\Resource;
 use Filament\Schemas\Components\Section;
+use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 class MahasiswaResource extends Resource
 {
@@ -30,7 +31,7 @@ class MahasiswaResource extends Resource
 
     protected static ?string $pluralModelLabel = 'Data Mahasiswa';
 
-     protected static ?int $navigationSort = 2;
+    protected static ?int $navigationSort = 2;
 
     protected static ?string $modelLabel = 'Data Mahasiswa';
 
@@ -44,32 +45,34 @@ class MahasiswaResource extends Resource
 
         // Menu ini HILANG jika user adalah mahasiswa
         // Menu ini MUNCUL jika user adalah kaprodi atau admin
-        return in_array($user->role, ['kaprodi', 'dosen']);
+        return $user->hasRole('kaprodi', 'dosen');
     }
+
     /**
      * Ambil hanya user role mahasiswa
      */
-
     public static function getEloquentQuery(): Builder
-{
-    $user = auth()->user();
-    $query = parent::getEloquentQuery()->where('role', 'mahasiswa');
-// 1. Jika Role Kaprodi, tampilkan SEMUA mahasiswa (Akses Penuh)
-    if ($user->role === 'kaprodi') {
-        return $query;
+    {
+        $user = auth()->user();
+        $query = parent::getEloquentQuery()->where('role', 'mahasiswa');
+        // 1. Jika Role Kaprodi, tampilkan SEMUA mahasiswa (Akses Penuh)
+        if ($user->role === 'kaprodi') {
+            return $query;
+        }
+
+        // 2. Jika Role Dosen, saring mahasiswa berdasarkan Mata Kuliah yang diajar
+        if ($user->role === 'dosen') {
+            return $query->whereHas('mahasiswaProfile.mataKuliahs', function (Builder $subQuery) use ($user) {
+                $subQuery->whereHas('dosens', function (Builder $dosenQuery) use ($user) {
+                    $dosenQuery->where('user_id', $user->id);
+                });
+            });
+        }
+
+        // 3. Jika role tidak dikenal, kembalikan query kosong demi keamanan
+        return $query->whereRaw('1=0');
     }
 
-    // 2. Jika Role Dosen, saring mahasiswa berdasarkan Mata Kuliah yang diajar
-    if ($user->role === 'dosen') {
-        return $query->whereHas('mahasiswaProfile.mataKuliahs', function (Builder $subQuery) use ($user) {
-            $subQuery->whereHas('dosens', function (Builder $dosenQuery) use ($user) {
-                $dosenQuery->where('user_id', $user->id);
-            });
-        });
-    }
-    // 3. Jika role tidak dikenal, kembalikan query kosong demi keamanan
-    return $query->whereRaw('1=0');
-}
     /**
      * FORM
      */
@@ -78,15 +81,17 @@ class MahasiswaResource extends Resource
         return $schema->schema([
             Section::make('Informasi Akun')
                 ->description('Data login dan identitas Mahasiswa')
+                ->columnSpanFull()
                 ->columns(2)
                 ->schema([TextInput::make('name')->label('Nama Lengkap')->required()->maxLength(255), TextInput::make('email')->label('Alamat Email')->email()->required()->unique(ignoreRecord: true), TextInput::make('password')->label('Password')->password()->required()->visibleOn('create'), Hidden::make('role')->default('mahasiswa')]),
 
             Section::make('Detail Profil')
+                ->columnSpanFull()
                 ->relationship('mahasiswaProfile')
                 ->columns(2)
                 ->schema([
-                    TextInput::make('nim')->numeric()->label('NIM')->required(),
-                    TextInput::make('semester')->numeric()->label('Semester')->required(),
+                    TextInput::make('nim')->numeric()->label('NIM')->required()->unique(ignoreRecord: true),
+                    TextInput::make('semester')->integer()->minValue(1)->maxValue(14)->label('Semester')->required(),
                     DatePicker::make('tanggal_masuk')->label('Tanggal Masuk')->required(),
                     Select::make('status_aktif') // ❌ pindah ke sini
                         ->label('Status')
@@ -99,6 +104,11 @@ class MahasiswaResource extends Resource
                     Select::make('mataKuliahs')->label('Mata Kuliah')->relationship('mataKuliahs', 'nama')->multiple()->searchable()->preload(),
                 ]),
         ]);
+    }
+
+    public static function infolist(Schema $schema): Schema
+    {
+        return MahasiswaInfolist::configure($schema);
     }
 
     /**
@@ -115,10 +125,10 @@ class MahasiswaResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index'  => ListMahasiswas::route('/'),
+            'index' => ListMahasiswas::route('/'),
             'create' => CreateMahasiswa::route('/create'),
-            'view'   => ViewMahasiswa::route('/{record}'),
-            'edit'   => EditMahasiswa::route('/{record}/edit'),
+            'view' => ViewMahasiswa::route('/{record}'),
+            'edit' => EditMahasiswa::route('/{record}/edit'),
         ];
     }
 }

@@ -2,8 +2,8 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 
 class MataKuliah extends Model
 {
@@ -22,14 +22,7 @@ class MataKuliah extends Model
     }
 
     public function mahasiswas()
-{
-    return $this->belongsToMany(MahasiswaProfile::class, 'mahasiswa_mata_kuliah', 'mata_kuliah_id', 'mahasiswa_id');
-}
-
-public function dosenProfiles()
-{
-    // Pastikan nama tabel pivot dan foreign key sama persis dengan yang di DosenProfile
-    return $this->belongsToMany(DosenProfile::class, 'dosen_mata_kuliah', 'mata_kuliah_id', 'dosen_id');
-}
-
+    {
+        return $this->belongsToMany(MahasiswaProfile::class, 'mahasiswa_mata_kuliah', 'mata_kuliah_id', 'mahasiswa_id');
+    }
 }

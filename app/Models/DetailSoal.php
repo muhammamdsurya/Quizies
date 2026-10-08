@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class DetailSoal extends Model
 {
-   protected $table = 'detail_soal'; // Sesuai nama tabel di migrasi
+    protected $table = 'detail_soal'; // Sesuai nama tabel di migrasi
 
     protected $fillable = [
         'soals_id',
@@ -23,30 +23,25 @@ class DetailSoal extends Model
     ];
 
     protected static function booted()
-{
-    static::creating(function ($detailSoal) {
-        // Jika nomor_soal belum terisi dari form
-        if (blank($detailSoal->nomor_soal)) {
-            // Hitung jumlah soal yang sudah ada untuk ID Soal (header) tersebut
-            $lastNumber = static::where('soals_id', $detailSoal->soals_id)->max('nomor_soal');
-            $detailSoal->nomor_soal = ($lastNumber ?? 0) + 1;
-        }
-
-        if ($detailSoal->soals_id) {
-                $induk = \App\Models\Soals::find($detailSoal->soals_id);
-                if ($induk) {
-                    $detailSoal->tipe_soal = $induk->tipe_soal;
-                }
-            }
-    });
-
-    static::saving(function ($detailSoal) {
-             if ($detailSoal->soals_id) {
-                $induk = \App\Models\Soals::find($detailSoal->soals_id);
-                if ($induk) {
-                    $detailSoal->tipe_soal = $induk->tipe_soal;
-                }
+    {
+        static::creating(function ($detailSoal) {
+            // Jika nomor_soal belum terisi dari form, lanjutkan dari nomor terakhir
+            if (blank($detailSoal->nomor_soal)) {
+                $lastNumber = static::where('soals_id', $detailSoal->soals_id)->max('nomor_soal');
+                $detailSoal->nomor_soal = ($lastNumber ?? 0) + 1;
             }
         });
-}
+
+        // Tipe soal selalu mengikuti paket soal induknya
+        static::saving(function ($detailSoal) {
+            if ($tipe = Soals::whereKey($detailSoal->soals_id)->value('tipe_soal')) {
+                $detailSoal->tipe_soal = $tipe;
+            }
+        });
+    }
+
+    public function soal(): BelongsTo
+    {
+        return $this->belongsTo(Soals::class, 'soals_id');
+    }
 }

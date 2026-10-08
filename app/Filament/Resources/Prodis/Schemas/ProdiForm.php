@@ -12,7 +12,9 @@ class ProdiForm
         return $schema
             ->components([
                 TextInput::make('kode')
-                    ->required(),
+                    ->required()
+                    ->maxLength(10)
+                    ->unique(ignoreRecord: true),
                 TextInput::make('nama')
                     ->required(),
             ]);

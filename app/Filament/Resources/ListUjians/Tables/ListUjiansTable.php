@@ -2,76 +2,75 @@
 
 namespace App\Filament\Resources\ListUjians\Tables;
 
-use Filament\Actions\BulkActionGroup;
-use Filament\Actions\DeleteBulkAction;
-use Filament\Tables\Columns\TextColumn;
-use Filament\Actions\EditAction;
-use Filament\Actions\ViewAction;
-use Filament\Tables\Table;
 use App\Models\UjianAttempt;
-use Illuminate\Support\Facades\Auth;
+use App\Models\Ujians;
+use Filament\Actions\Action;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Grouping\Group;
+use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 class ListUjiansTable
 {
     public static function configure(Table $table): Table
     {
         return $table
+            ->modifyQueryUsing(fn (Builder $query) => $query->with([
+                'soal.mataKuliah',
+                'attempts' => fn ($q) => $q->where('user_id', auth()->id()),
+            ]))
             ->columns([
-                // Judul Ujian
                 TextColumn::make('judul_ujian')
                     ->label('Ujian')
-                    ->searchable(),
+                    ->weight('bold')
+                    ->searchable()
+                    // Ringkasan untuk layar kecil, kolom detail disembunyikan di ponsel
+                    ->description(fn (Ujians $record) => "{$record->durasi_menit} menit · s.d. {$record->waktu_selesai->translatedFormat('d M, H:i')}"),
 
-                // Nama Mata Kuliah melalui relasi
-                TextColumn::make('soal.mataKuliah.nama')
-                    ->label('Mata Kuliah')
-                    ->searchable(),
-
-                // Status Pengerjaan (Pasti 'Sudah' karena ini riwayat)
                 TextColumn::make('status_pengerjaan')
                     ->label('Status')
-                    ->state(function ($record) {
-                        $exists = UjianAttempt::where('user_id', Auth::id())
-                            ->where('ujian_id', $record->id)
-                            ->exists();
-                        return $exists ? 'Sudah Dikerjakan' : 'Waktu Habis';
-                    })
+                    ->state(fn (Ujians $record) => $record->attemptOleh(auth()->id()) ? 'Sedang Dikerjakan' : 'Belum Dikerjakan')
                     ->badge()
-                    ->color(fn (string $state): string => match ($state) {
-                        'Sudah Dikerjakan' => 'success',
-                        'Waktu Habis' => 'danger',
-                        default => 'gray',
-                    }),
+                    ->color(fn (string $state): string => $state === 'Sedang Dikerjakan' ? 'warning' : 'gray')
+                    ->visibleFrom('sm'),
 
-                // Durasi
                 TextColumn::make('durasi_menit')
                     ->label('Durasi')
-                    ->suffix(' Menit'),
+                    ->suffix(' menit')
+                    ->visibleFrom('lg'),
 
-                // Batas Waktu Selesai
                 TextColumn::make('waktu_selesai')
                     ->label('Batas Waktu')
                     ->dateTime('d M Y, H:i')
-                    ->sortable(),
-
-                // KOLOM NILAI / SKOR AKHIR
-                TextColumn::make('skor')
-                    ->label('Nilai Akhir')
-                    ->state(function ($record) {
-                        $attempt = UjianAttempt::where('user_id', Auth::id())
-                            ->where('ujian_id', $record->id)
-                            ->first();
-
-                        return $attempt ? $attempt->skor_akhir : null;
-                    })
-                    ->placeholder('-') // Jika tidak ada attempt (ujian terlewat)
-                    ->badge()
-                    ->color('info')
-                    ->weight('bold'),
+                    ->sortable()
+                    ->visibleFrom('lg'),
             ])
-            // PENGATURAN AGAR TABEL MATI (READ-ONLY)
-            ->actions([]) // Menghapus tombol 'kerjakan' atau tombol lainnya
-            ->bulkActions([]) // Menghapus checkbox massal
-            ; // Membuat baris tidak bisa diklik (tidak masuk ke View/Edit)
+            // Kelompokkan ujian per mata kuliah
+            ->defaultGroup(Group::make('soal.mataKuliah.nama')->label('Mata Kuliah')->collapsible())
+            ->defaultSort('waktu_selesai')
+            ->emptyStateIcon('heroicon-o-clipboard-document-check')
+            ->emptyStateHeading('Belum ada ujian yang tersedia')
+            ->emptyStateDescription('Ujian akan muncul di sini ketika jadwalnya sudah dimulai.')
+            ->recordActions([
+                Action::make('kerjakan')
+                    ->label(fn (Ujians $record) => $record->attemptOleh(auth()->id()) ? 'Lanjutkan' : 'Mulai Ujian')
+                    ->color('success')
+                    ->icon('heroicon-o-play')
+                    ->button()
+                    ->requiresConfirmation()
+                    ->modalIcon('heroicon-o-clock')
+                    ->modalHeading(fn (Ujians $record) => $record->attemptOleh(auth()->id()) ? 'Lanjutkan Ujian?' : 'Mulai Ujian?')
+                    ->modalDescription(fn (Ujians $record) => "Durasi {$record->durasi_menit} menit. Waktu tetap berjalan walaupun halaman ujian ditutup.")
+                    ->modalSubmitActionLabel('Ya, kerjakan')
+                    ->action(function (Ujians $record) {
+                        // Record berasal dari query resource, jadi ujian pasti aktif & diikuti mahasiswa ini
+                        $attempt = UjianAttempt::firstOrCreate(
+                            ['user_id' => auth()->id(), 'ujian_id' => $record->id],
+                            ['mulai_pada' => now()],
+                        );
+
+                        return redirect()->route('ujian.kerjakan', $attempt->id);
+                    }),
+            ]);
     }
 }

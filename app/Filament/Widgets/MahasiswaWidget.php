@@ -2,52 +2,47 @@
 
 namespace App\Filament\Widgets;
 
+use App\Models\SettingSoal;
+use App\Models\UjianAttempt;
 use Filament\Widgets\StatsOverviewWidget as BaseWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
-use Illuminate\Support\Facades\Auth;
-use App\Models\UjianAttempt;
 
 class MahasiswaWidget extends BaseWidget
 {
-    // 1. Keamanan: Hanya Mahasiswa yang bisa melihat
+    protected static ?int $sort = 2;
+
+    // Keamanan: Hanya Mahasiswa yang bisa melihat
     public static function canView(): bool
     {
-        return auth()->user()->role === 'mahasiswa';
+        return auth()->user()->hasRole('mahasiswa');
     }
-
-    protected static ?int $sort = 2;
 
     protected function getStats(): array
     {
-
         $user = auth()->user();
-        $profile = $user->mahasiswaProfile;
+        $profile = $user->mahasiswaProfile; // bisa null jika profil belum dibuat Kaprodi
 
-        // Jika profil belum ada, jangan tampilkan data
-        // if (!$profile) return [];
+        $tahunAkademik = SettingSoal::where('is_active', true)->latest()->value('tahun_akademik');
+
+        $selesai = UjianAttempt::where('user_id', $user->id)->whereNotNull('selesai_pada');
+        $jumlahSelesai = (clone $selesai)->count();
+        $rataRata = (clone $selesai)->whereNotNull('skor_akhir')->avg('skor_akhir');
 
         return [
-            // Stat 1: Semester Saat Ini
-            Stat::make('Semester', $profile->semester)
-                ->description('Status: ' . ucfirst($profile->status_aktif))
+            Stat::make('Semester', $profile?->semester ?? '-')
+                ->description('Status: '.ucfirst($profile?->status_aktif ?? 'profil belum lengkap'))
                 ->descriptionIcon('heroicon-m-academic-cap')
                 ->color('primary'),
 
-            // Stat 2: Mata Kuliah yang Diambil
-            Stat::make('Mata Kuliah', $profile->mataKuliahs()->count() . ' MK')
-                ->description('Tahun Akademik 2025/2026')
+            Stat::make('Mata Kuliah', ($profile ? $profile->mataKuliahs()->count() : 0).' MK')
+                ->description($tahunAkademik ? "Tahun Akademik {$tahunAkademik}" : 'Mata kuliah yang diambil')
                 ->descriptionIcon('heroicon-m-book-open')
                 ->color('success'),
 
-          Stat::make('Ujian Dikerjakan', UjianAttempt::where('user_id', Auth::id())->count() . ' Ujian')
-    ->description('Total ujian yang telah Anda selesaikan')
-    ->descriptionIcon('heroicon-m-clipboard-document-check')
-    ->chart([
-        // Contoh logik chart: menampilkan tren pengerjaan dalam 5 periode terakhir
-        UjianAttempt::where('user_id', Auth::id())->count(),
-        UjianAttempt::where('user_id', Auth::id())->count(),
-    ])
-    ->color('success'),
+            Stat::make('Ujian Dikerjakan', $jumlahSelesai.' Ujian')
+                ->description($rataRata !== null ? 'Rata-rata nilai: '.round($rataRata) : 'Belum ada nilai')
+                ->descriptionIcon('heroicon-m-clipboard-document-check')
+                ->color('warning'),
         ];
     }
 }

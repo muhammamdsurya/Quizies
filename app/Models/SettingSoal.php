@@ -2,8 +2,8 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class SettingSoal extends Model
@@ -26,6 +26,6 @@ class SettingSoal extends Model
 
     public function soals(): HasMany
     {
-        return $this->hasMany(Soal::class);
+        return $this->hasMany(Soals::class, 'setting_soal_id');
     }
 }

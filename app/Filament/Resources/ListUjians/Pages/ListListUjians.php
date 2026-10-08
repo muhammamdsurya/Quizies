@@ -3,17 +3,18 @@
 namespace App\Filament\Resources\ListUjians\Pages;
 
 use App\Filament\Resources\ListUjians\ListUjianResource;
-use Filament\Actions\CreateAction;
+use App\Models\UjianAttempt;
 use Filament\Resources\Pages\ListRecords;
 
 class ListListUjians extends ListRecords
 {
     protected static string $resource = ListUjianResource::class;
 
-    protected function getHeaderActions(): array
+    public function mount(): void
     {
-        return [
+        // Attempt yang waktunya habis dikumpulkan otomatis agar pindah ke Riwayat
+        UjianAttempt::selesaikanYangKedaluwarsa(auth()->id());
 
-        ];
+        parent::mount();
     }
 }

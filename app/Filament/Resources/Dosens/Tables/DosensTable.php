@@ -2,22 +2,22 @@
 
 namespace App\Filament\Resources\Dosens\Tables;
 
+use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkActionGroup;
-use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\DeleteAction;
+use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
-use Filament\Tables\Table;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Table;
 
 class DosensTable
 {
-
     public static function configure(Table $table): Table
     {
         return $table
             ->columns([
-               TextColumn::make('name')
+                TextColumn::make('name')
                     ->label('Nama')
                     ->searchable()
                     ->sortable(),
@@ -32,11 +32,11 @@ class DosensTable
                 TextColumn::make('dosenProfile.prodi.nama')
                     ->label('Prodi'),
 
-                TextColumn::make('dosenProfile.prodi.jabatan')
+                TextColumn::make('dosenProfile.jabatan')
                     ->label('Jabatan')
                     ->toggleable(isToggledHiddenByDefault: true),
 
-                TextColumn::make('dosenProfile.prodi.status_aktif')
+                TextColumn::make('dosenProfile.status_aktif')
                     ->label('Status')
                     ->toggleable(isToggledHiddenByDefault: true),
 
@@ -44,19 +44,18 @@ class DosensTable
             ->filters([
                 //
             ])
+            // Aksi dikelompokkan dalam menu agar tabel tetap ringkas di layar kecil
             ->recordActions([
-                EditAction::make()
-                ->visible(fn () => auth()->user()?->role === 'kaprodi'),
-
-                 DeleteAction::make()
-                ->visible(fn () => auth()->user()?->role === 'kaprodi')
-                ->requiresConfirmation(),
+                ActionGroup::make([
+                    ViewAction::make(),
+                    EditAction::make(),
+                    DeleteAction::make(),
+                ]),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
-                DeleteBulkAction::make()
-                    ->visible(fn () => auth()->user()?->role === 'kaprodi'),
-            ]),
+                    DeleteBulkAction::make(),
+                ]),
             ]);
     }
 }

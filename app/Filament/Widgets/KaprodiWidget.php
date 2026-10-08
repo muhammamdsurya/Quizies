@@ -2,11 +2,10 @@
 
 namespace App\Filament\Widgets;
 
-use App\Models\User;
-use App\Models\Prodi;
-use App\Models\MataKuliah;
 use App\Models\DosenProfile;
 use App\Models\MahasiswaProfile;
+use App\Models\MataKuliah;
+use App\Models\Prodi;
 use Filament\Widgets\StatsOverviewWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
 
@@ -18,12 +17,13 @@ class KaprodiWidget extends StatsOverviewWidget
         $user = auth()->user();
 
         // Kembalikan true jika role adalah kaprodi ATAU dosen
-        return $user && in_array($user->role, ['kaprodi', 'dosen']);
+        return $user && $user->hasRole('kaprodi', 'dosen');
     }
 
     protected static ?int $sort = 2;
-   // Mengatur agar widget tampil dalam 1 baris penuh (opsional)
-    protected int | string | array $columnSpan = 'full';
+
+    // Mengatur agar widget tampil dalam 1 baris penuh (opsional)
+    protected int|string|array $columnSpan = 'full';
 
     protected function getStats(): array
     {
@@ -32,14 +32,12 @@ class KaprodiWidget extends StatsOverviewWidget
             Stat::make('Total Mahasiswa', MahasiswaProfile::count())
                 ->description('Mahasiswa terdaftar')
                 ->descriptionIcon('heroicon-m-academic-cap')
-                ->chart([7, 2, 10, 3, 15, 4, 17]) // Contoh data grafik tren
                 ->color('success'),
 
             // Stat 2: Jumlah Dosen
             Stat::make('Total Dosen', DosenProfile::count())
                 ->description('Dosen pengajar aktif')
                 ->descriptionIcon('heroicon-m-users')
-                ->chart([3, 5, 2, 8, 4, 7, 4])
                 ->color('primary'),
 
             // Stat 3: Jumlah Mata Kuliah

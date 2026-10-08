@@ -7,8 +7,10 @@ use Filament\Widgets\StatsOverviewWidget\Stat;
 
 class UserInfo extends StatsOverviewWidget
 {
+    protected static ?int $sort = -1; // Tampil paling atas, sebelum DividerWidget (0)
+
     // Membuat widget memenuhi lebar layar agar tidak kecil
-    protected int | string | array $columnSpan = 'full';
+    protected int|string|array $columnSpan = 'full';
 
     protected function getStats(): array
     {
@@ -21,7 +23,7 @@ class UserInfo extends StatsOverviewWidget
                 ->descriptionIcon('heroicon-m-user')
                 ->color('primary'),
 
-            Stat::make('Role Akun', strtoupper($user->role))
+            Stat::make('Role Akun', ucfirst($user->role))
                 ->description('Status akses Anda di sistem')
                 ->color('warning'),
         ];

@@ -9,25 +9,22 @@ class RegistrationTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_registration_screen_can_be_rendered(): void
+    // Akun dibuat oleh Kaprodi, bukan lewat registrasi publik
+    public function test_registration_screen_is_disabled(): void
     {
-        $response = $this->get(route('register'));
-
-        $response->assertStatus(200);
+        $this->get('/register')->assertNotFound();
     }
 
-    public function test_new_users_can_register(): void
+    public function test_new_users_cannot_self_register(): void
     {
-        $response = $this->post(route('register.store'), [
+        $this->post('/register', [
             'name' => 'John Doe',
             'email' => 'test@example.com',
             'password' => 'password',
             'password_confirmation' => 'password',
-        ]);
+        ])->assertNotFound();
 
-        $response->assertSessionHasNoErrors()
-            ->assertRedirect(route('dashboard', absolute: false));
-
-        $this->assertAuthenticated();
+        $this->assertGuest();
+        $this->assertDatabaseMissing('users', ['email' => 'test@example.com']);
     }
 }

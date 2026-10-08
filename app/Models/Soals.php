@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -26,9 +25,8 @@ class Soals extends Model
     public function detailSoals(): HasMany
     {
         // Pastikan foreign key di detail_soal adalah 'soals_id' sesuai migrasi Anda
-        return $this->hasMany(DetailSoal::class, 'soals_id');
+        return $this->hasMany(DetailSoal::class, 'soals_id')->orderBy('nomor_soal');
     }
-
 
     // Tambahkan juga relasi ke SettingSoal agar dropdown di form berfungsi
     public function settingSoal()
@@ -37,7 +35,7 @@ class Soals extends Model
     }
 
     public function user()
-{
-    return $this->belongsTo(User::class, 'user_id');
-}
+    {
+        return $this->belongsTo(User::class, 'user_id');
+    }
 }

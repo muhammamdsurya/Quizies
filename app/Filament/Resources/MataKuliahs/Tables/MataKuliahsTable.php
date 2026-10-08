@@ -2,10 +2,11 @@
 
 namespace App\Filament\Resources\MataKuliahs\Tables;
 
+use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
-use Filament\Actions\DeleteAction;
 use Filament\Actions\ViewAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
@@ -16,21 +17,28 @@ class MataKuliahsTable
     {
         return $table
             ->columns([
-                TextColumn::make('prodi_id')
-                    ->numeric()
-                    ->sortable(),
                 TextColumn::make('kode')
-                    ->searchable(),
-                    TextColumn::make('dosens.user.name') // Mengambil nama dari relasi dosens -> user
-                ->label('Dosen Pengajar')
-                ->listWithLineBreaks() // Menampilkan dosen berderet ke bawah
-                ->searchable(),        // Agar bisa dicari berdasarkan nama dosen
-                TextColumn::make('semester')
-                    ->numeric()
+                    ->label('Kode')
+                    ->searchable()
                     ->sortable(),
                 TextColumn::make('nama')
+                    ->label('Nama Mata Kuliah')
+                    ->searchable()
+                    ->wrap(),
+                TextColumn::make('prodi.nama')
+                    ->label('Program Studi')
+                    ->sortable()
+                    ->toggleable(),
+                TextColumn::make('dosens.user.name') // Mengambil nama dari relasi dosens -> user
+                    ->label('Dosen Pengajar')
+                    ->listWithLineBreaks() // Menampilkan dosen berderet ke bawah
                     ->searchable(),
+                TextColumn::make('semester')
+                    ->label('Semester')
+                    ->numeric()
+                    ->sortable(),
                 TextColumn::make('sks')
+                    ->label('SKS')
                     ->numeric()
                     ->sortable(),
                 TextColumn::make('created_at')
@@ -42,17 +50,15 @@ class MataKuliahsTable
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
-            ->filters([
-                //
-            ])
+            ->defaultSort('kode')
+            // Aksi dikelompokkan dalam menu agar tabel tetap ringkas di layar kecil
             ->recordActions([
-                EditAction::make()
-        ->visible(fn () => in_array(auth()->user()->role, ['kaprodi', 'dosen'])),
-           DeleteAction::make()
-                ->visible(fn () => auth()->user()?->role === 'kaprodi')
-                ->requiresConfirmation(),
-        ])
-
+                ActionGroup::make([
+                    ViewAction::make(),
+                    EditAction::make(),
+                    DeleteAction::make(),
+                ]),
+            ])
             ->toolbarActions([
                 BulkActionGroup::make([
                     DeleteBulkAction::make(),

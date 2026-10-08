@@ -12,15 +12,15 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('ujians', function (Blueprint $table) {
-    $table->id();
-    $table->string('judul_ujian'); // Contoh: Ujian Tengah Semester Gasal
-    $table->foreignId('user_id')->constrained('users'); // Dosen pembuat ujian
-    $table->foreignId('soals_id')->constrained('soals')->onDelete('cascade'); // Tambahkan ini; // Mengambil paket soal
-    $table->dateTime('waktu_mulai');
-    $table->dateTime('waktu_selesai');
-    $table->integer('durasi_menit');
-    $table->timestamps();
-});
+            $table->id();
+            $table->string('judul_ujian'); // Contoh: Ujian Tengah Semester Gasal
+            $table->foreignId('user_id')->constrained('users'); // Dosen pembuat ujian
+            $table->foreignId('soals_id')->constrained('soals')->onDelete('cascade'); // Tambahkan ini; // Mengambil paket soal
+            $table->dateTime('waktu_mulai');
+            $table->dateTime('waktu_selesai');
+            $table->integer('durasi_menit');
+            $table->timestamps();
+        });
     }
 
     /**
@@ -28,6 +28,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        //
+        Schema::dropIfExists('ujians');
     }
 };

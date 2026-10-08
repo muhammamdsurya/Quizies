@@ -4,7 +4,6 @@ namespace Database\Factories;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Str;
 
 /**
  * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\User>
@@ -21,14 +20,15 @@ class UserFactory extends Factory
      *
      * @return array<string, mixed>
      */
-     public function definition(): array
+    public function definition(): array
     {
-        $faker = \Faker\Factory::create('id_ID');
+        $faker = fake('id_ID'); // instance bersama agar unique() berlaku antar baris
 
         return [
             'name' => $faker->name(),
             'email' => $faker->unique()->safeEmail(),
-            'password' => Hash::make('password'),
+            'email_verified_at' => now(),
+            'password' => static::$password ??= Hash::make('password'),
             'role' => $faker->randomElement([
                 'dosen',
                 'mahasiswa',

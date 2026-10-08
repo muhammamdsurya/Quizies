@@ -12,13 +12,13 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('setting_soals', function (Blueprint $table) {
-        $table->id();
-        $table->string('tahun_akademik'); // Contoh: 2025/2026
-        $table->json('jenis_soal_options'); // Menyimpan ['uts', 'uas', 'kuis']
-        $table->json('tipe_soal_options');  // Menyimpan ['pg', 'esai']
-        $table->boolean('is_active')->default(true);
-        $table->timestamps();
-    });
+            $table->id();
+            $table->string('tahun_akademik'); // Contoh: 2025/2026
+            $table->json('jenis_soal_options'); // Menyimpan ['uts', 'uas', 'kuis']
+            $table->json('tipe_soal_options');  // Menyimpan ['pg', 'esai']
+            $table->boolean('is_active')->default(true);
+            $table->timestamps();
+        });
     }
 
     /**
@@ -26,6 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        //
+        Schema::dropIfExists('setting_soals');
     }
 };

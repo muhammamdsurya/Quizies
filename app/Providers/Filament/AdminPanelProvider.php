@@ -2,6 +2,8 @@
 
 namespace App\Providers\Filament;
 
+use App\Notifications\KodeOtpEmail;
+use Filament\Auth\MultiFactor\Email\EmailAuthentication;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
@@ -10,8 +12,7 @@ use Filament\Pages\Dashboard;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
-use Filament\Widgets\AccountWidget;
-use Filament\Widgets\FilamentInfoWidget;
+use Filament\View\PanelsRenderHook;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
@@ -29,6 +30,21 @@ class AdminPanelProvider extends PanelProvider
             ->path('admin')
             ->brandName('Kuiz Digital')
             ->login()
+            ->passwordReset()
+            ->profile(isSimple: false)
+            // OTP via email: aktif otomatis setelah App Password Gmail diisi di .env (MAIL_PASSWORD)
+            ->multiFactorAuthentication(
+                fn (): array => static::otpEmailAktif()
+                    ? [EmailAuthentication::make()->codeNotification(KodeOtpEmail::class)->codeExpiryMinutes(10)]
+                    : [],
+                isRequired: fn (): bool => static::otpEmailAktif(),
+            )
+            ->brandLogo(fn () => view('filament.brand'))
+            ->brandLogoHeight('2.25rem')
+            ->favicon(asset('favicon.png').'?v=2')
+            ->sidebarCollapsibleOnDesktop()
+            // Pop-up "sesi berakhir" pengganti dialog confirm() bawaan Livewire
+            ->renderHook(PanelsRenderHook::BODY_END, fn () => view('partials.sesi-berakhir'))
             ->colors([
                 'primary' => Color::Blue,
             ])
@@ -38,10 +54,6 @@ class AdminPanelProvider extends PanelProvider
                 Dashboard::class,
             ])
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\Filament\Widgets')
-            ->widgets([
-
-
-            ])
             ->middleware([
                 EncryptCookies::class,
                 AddQueuedCookiesToResponse::class,
@@ -56,5 +68,13 @@ class AdminPanelProvider extends PanelProvider
             ->authMiddleware([
                 Authenticate::class,
             ]);
+    }
+
+    /**
+     * OTP email hanya aktif bila email benar-benar terkirim lewat SMTP (App Password Gmail sudah diisi).
+     */
+    public static function otpEmailAktif(): bool
+    {
+        return config('mail.default') === 'smtp' && filled(config('mail.mailers.smtp.password'));
     }
 }

@@ -2,13 +2,14 @@
 
 namespace App\Filament\Resources\Mahasiswas\Tables;
 
+use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
-use Filament\Actions\DeleteAction;
 use Filament\Actions\ViewAction;
-use Filament\Tables\Table;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Table;
 
 class MahasiswasTable
 {
@@ -32,23 +33,23 @@ class MahasiswasTable
                     ->label('Prodi'),
 
                 TextColumn::make('mahasiswaProfile.semester')
-                    ->label('semester')
+                    ->label('Semester')
                     ->toggleable(isToggledHiddenByDefault: true),
 
                 TextColumn::make('mahasiswaProfile.status_aktif')
-                    ->label('status')
+                    ->label('Status')
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
                 //
             ])
+            // Aksi dikelompokkan dalam menu agar tabel tetap ringkas di layar kecil
             ->recordActions([
-                EditAction::make()
-                ->visible(fn () => auth()->user()?->role === 'kaprodi'),
-
-                 DeleteAction::make()
-                ->visible(fn () => auth()->user()?->role === 'kaprodi')
-                ->requiresConfirmation(),
+                ActionGroup::make([
+                    ViewAction::make(),
+                    EditAction::make(),
+                    DeleteAction::make(),
+                ]),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([

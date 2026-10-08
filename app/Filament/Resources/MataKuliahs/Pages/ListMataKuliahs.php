@@ -13,8 +13,7 @@ class ListMataKuliahs extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
-    CreateAction::make()
-        ->visible(fn () => in_array(auth()->user()->role, ['kaprodi', 'dosen'])),
-];
+            CreateAction::make(),
+        ];
     }
 }

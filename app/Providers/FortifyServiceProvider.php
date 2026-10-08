@@ -4,8 +4,11 @@ namespace App\Providers;
 
 use App\Actions\Fortify\CreateNewUser;
 use App\Actions\Fortify\ResetUserPassword;
+use App\Models\User;
+use App\Providers\Filament\AdminPanelProvider;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
@@ -38,6 +41,18 @@ class FortifyServiceProvider extends ServiceProvider
     {
         Fortify::resetUserPasswordsUsing(ResetUserPassword::class);
         Fortify::createUsersUsing(CreateNewUser::class);
+
+        // Saat OTP email aktif, POST /login milik Fortify ditolak agar tidak bisa melewati OTP;
+        // semua login wajib lewat panel Filament (/admin/login) yang meminta kode OTP.
+        Fortify::authenticateUsing(function (Request $request) {
+            if (AdminPanelProvider::otpEmailAktif()) {
+                return null;
+            }
+
+            $user = User::where('email', $request->input(Fortify::username()))->first();
+
+            return $user && Hash::check($request->input('password'), $user->password) ? $user : null;
+        });
     }
 
     /**
@@ -45,7 +60,8 @@ class FortifyServiceProvider extends ServiceProvider
      */
     private function configureViews(): void
     {
-        Fortify::loginView(fn () => view('livewire.auth.login'));
+        // Satu pintu login: halaman login Fortify diarahkan ke login panel Filament
+        Fortify::loginView(fn () => redirect()->route('filament.admin.auth.login'));
         Fortify::verifyEmailView(fn () => view('livewire.auth.verify-email'));
         Fortify::twoFactorChallengeView(fn () => view('livewire.auth.two-factor-challenge'));
         Fortify::confirmPasswordView(fn () => view('livewire.auth.confirm-password'));
